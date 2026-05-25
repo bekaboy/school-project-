@@ -17,21 +17,21 @@ ALTER TABLE deliveries ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Drivers can view own deliveries"
   ON deliveries FOR SELECT
   USING (
-    driver_id = auth.uid() OR
+    driver_id::text = auth.uid()::text OR
     EXISTS (
-      SELECT 1 FROM users WHERE id = auth.uid() AND role = 'Technical Manager/Owner'
+      SELECT 1 FROM users WHERE id::text = auth.uid()::text AND role = 'Technical Manager/Owner'
     )
   );
 
 CREATE POLICY "Drivers can update own deliveries"
   ON deliveries FOR UPDATE
-  USING (driver_id = auth.uid())
-  WITH CHECK (driver_id = auth.uid());
+  USING (driver_id::text = auth.uid()::text)
+  WITH CHECK (driver_id::text = auth.uid()::text);
 
 CREATE POLICY "Admins can manage all deliveries"
   ON deliveries FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM users WHERE id = auth.uid() AND role = 'Technical Manager/Owner'
+      SELECT 1 FROM users WHERE id::text = auth.uid()::text AND role = 'Technical Manager/Owner'
     )
   );

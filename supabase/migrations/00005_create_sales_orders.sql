@@ -25,9 +25,9 @@ ALTER TABLE sales_orders ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Sales reps can view own orders"
   ON sales_orders FOR SELECT
   USING (
-    sales_rep_id = auth.uid() OR
+    sales_rep_id::text = auth.uid()::text OR
     EXISTS (
-      SELECT 1 FROM users WHERE id = auth.uid() AND role = 'Technical Manager/Owner'
+      SELECT 1 FROM users WHERE id::text = auth.uid()::text AND role = 'Technical Manager/Owner'
     )
   );
 
@@ -35,6 +35,6 @@ CREATE POLICY "Sales reps can create orders"
   ON sales_orders FOR INSERT
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('Sales Representative', 'Technical Manager/Owner')
+      SELECT 1 FROM users WHERE id::text = auth.uid()::text AND role IN ('Sales Representative', 'Technical Manager/Owner')
     )
   );

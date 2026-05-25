@@ -15,9 +15,9 @@ CREATE POLICY "Users can view order items for accessible orders"
   ON order_items FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM sales_orders WHERE id = order_id AND (
-        sales_rep_id = auth.uid() OR
-        EXISTS (SELECT 1 FROM users WHERE id = auth.uid() AND role = 'Technical Manager/Owner')
+      SELECT 1 FROM sales_orders WHERE id = order_items.order_id AND (
+        sales_rep_id::text = auth.uid()::text OR
+        EXISTS (SELECT 1 FROM users WHERE id::text = auth.uid()::text AND role = 'Technical Manager/Owner')
       )
     )
   );
@@ -26,6 +26,6 @@ CREATE POLICY "Sales reps can create order items"
   ON order_items FOR INSERT
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('Sales Representative', 'Technical Manager/Owner')
+      SELECT 1 FROM users WHERE id::text = auth.uid()::text AND role IN ('Sales Representative', 'Technical Manager/Owner')
     )
   );

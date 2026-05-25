@@ -13,7 +13,7 @@ CREATE POLICY "Finance and admin can view invoices"
   ON invoices FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('Finance Officer', 'Technical Manager/Owner')
+      SELECT 1 FROM users WHERE id::text = auth.uid()::text AND role IN ('Finance Officer', 'Technical Manager/Owner')
     )
   );
 

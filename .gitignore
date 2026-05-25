@@ -8,4 +8,8 @@ dist/
 .DS_Store
 coverage/
 .vite/
-.DS_Store
+*.tsbuildinfo
+*.js.map
+*.d.ts.map
+apps/web/vite.config.js
+apps/web/vite.config.d.ts

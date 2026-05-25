@@ -13,12 +13,12 @@ ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can view own profile"
   ON users FOR SELECT
-  USING (auth.uid() = id);
+  USING (auth.uid()::text = id::text);
 
 CREATE POLICY "Admins can manage all users"
   ON users FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM users WHERE id = auth.uid() AND role = 'Technical Manager/Owner'
+      SELECT 1 FROM users WHERE id::text = auth.uid()::text AND role = 'Technical Manager/Owner'
     )
   );

@@ -24,6 +24,6 @@ CREATE POLICY "Store managers and admins can manage customers"
   ON customers FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM users WHERE id = auth.uid() AND role IN ('Store Manager', 'Technical Manager/Owner')
+      SELECT 1 FROM users WHERE id::text = auth.uid()::text AND role IN ('Store Manager', 'Technical Manager/Owner')
     )
   );
