@@ -1,0 +1,39 @@
+{
+  "name": "@pharma-ims/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./types/*": {
+      "types": "./src/types/*.ts",
+      "default": "./src/types/*.ts"
+    },
+    "./constants/*": {
+      "types": "./src/constants/*.ts",
+      "default": "./src/constants/*.ts"
+    },
+    "./validation/*": {
+      "types": "./src/validation/*.ts",
+      "default": "./src/validation/*.ts"
+    },
+    "./*": "./src/*"
+  },
+  "typesVersions": {
+    "*": {
+      "types/*": ["./src/types/*"],
+      "constants/*": ["./src/constants/*"],
+      "validation/*": ["./src/validation/*"]
+    }
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "lint": "echo 'shared lint ok'"
+  },
+  "dependencies": {
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.0"
+  }
+}
