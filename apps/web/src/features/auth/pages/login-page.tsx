@@ -2,22 +2,58 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/auth-store';
+import { useCreateAuditLog } from '@/lib/supabase/queries';
 import { useTranslation } from 'react-i18next';
+import { cn } from '@/lib/utils';
+import { loginSchema } from '@pharma-ims/shared';
+import type { UserRole } from '@pharma-ims/shared';
+
+const DEV_USERS: { label: string; email: string; role: UserRole }[] = [
+  { label: '🔑 Admin', email: 'admin@pharma.com', role: 'Technical Manager/Owner' },
+  { label: '💰 Sales', email: 'sales@pharma.com', role: 'Sales Representative' },
+  { label: '📦 Store', email: 'store@pharma.com', role: 'Store Manager' },
+  { label: '💳 Finance', email: 'finance@pharma.com', role: 'Finance Officer' },
+  { label: '🚚 Driver', email: 'driver@pharma.com', role: 'Delivery Driver' },
+];
 
 export function LoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const setUser = useAuthStore((s) => s.setUser);
   const setRole = useAuthStore((s) => s.setRole);
-  const [email, setEmail] = useState('');
+  const rememberMe = useAuthStore((s) => s.rememberMe);
+  const setRememberMe = useAuthStore((s) => s.setRememberMe);
+  const auditLog = useCreateAuditLog();
+  const [email, setEmail] = useState(localStorage.getItem('era-med-email') ?? '');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockoutUntil, setLockoutUntil] = useState(0);
+
+  const isLocked = Date.now() < lockoutUntil;
+  const lockoutRemaining = Math.max(0, Math.ceil((lockoutUntil - Date.now()) / 60000));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (isLocked) {
+      setError(`Account locked. Try again in ${lockoutRemaining} minute(s).`);
+      return;
+    }
+
+    const parsed = loginSchema.safeParse({ email, password });
+    if (!parsed.success) {
+      setError(parsed.error.errors[0]?.message ?? 'Invalid input');
+      return;
+    }
+
     setLoading(true);
+
+    if (rememberMe) localStorage.setItem('era-med-email', email);
+    else localStorage.removeItem('era-med-email');
 
     const { data, error: authError } = await supabase.auth.signInWithPassword({
       email,
@@ -25,70 +61,180 @@ export function LoginPage() {
     });
 
     if (authError) {
-      setError(t('auth.loginError'));
+      const newCount = failedAttempts + 1;
+      setFailedAttempts(newCount);
+      if (newCount >= 5) {
+        setLockoutUntil(Date.now() + 15 * 60 * 1000);
+        setError('Too many failed attempts. Account locked for 15 minutes.');
+        auditLog.mutate({
+          action: 'ACCOUNT_LOCKOUT',
+          entity_type: 'auth',
+          entity_id: email,
+          user_id: 'unknown',
+          details: { email, attempts: newCount },
+          ip_address: '',
+        } as never);
+      } else if (authError.message?.includes('Invalid login')) {
+        setError(`Invalid email or password. Attempt ${newCount}/5.`);
+      } else {
+        setError(authError.message);
+      }
       setLoading(false);
       return;
     }
 
+    setFailedAttempts(0);
+
     if (data.user) {
+      auditLog.mutate({
+        action: 'LOGIN',
+        entity_type: 'auth',
+        entity_id: data.user.id,
+        user_id: data.user.id,
+        details: { email, method: 'password' },
+        ip_address: '',
+      } as never);
+
       setUser(data.user as unknown as any);
       setRole((data.user.user_metadata?.role as string) ?? null);
       navigate('/dashboard');
     }
   };
 
+  async function handleForgotPassword() {
+    if (!email.trim()) {
+      setError('Please enter your email address first.');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/auth/login`,
+    });
+    setLoading(false);
+    if (resetError) {
+      setError(resetError.message);
+    } else {
+      setResetSent(true);
+    }
+  }
+
+  function devLogin(devEmail: string, devRole: UserRole) {
+    auditLog.mutate({
+      action: 'LOGIN',
+      entity_type: 'auth',
+      entity_id: 'dev-mode',
+      user_id: 'dev-mode',
+      details: { email: devEmail, method: 'dev-bypass' },
+      ip_address: '',
+    } as never);
+    setUser({ id: 'dev-mode', email: devEmail, user_metadata: { role: devRole } } as never);
+    setRole(devRole);
+    navigate('/dashboard');
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted">
-      <div className="w-full max-w-md rounded-lg border bg-card p-8 shadow-sm">
-        <h1 className="mb-6 text-2xl font-bold text-center">PharmaIMS</h1>
-        <p className="mb-6 text-center text-sm text-muted-foreground">
-          Pharmaceutical Wholesale Inventory & Sales Management
-        </p>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#fefaf2] p-6">
+      <div
+        className={cn(
+          'absolute inset-0',
+          '[background-size:24px_24px]',
+          '[background-image:radial-gradient(#4B9E1A_1px,transparent_1px)]',
+        )}
+      />
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[#fefaf2] [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              {t('auth.email')}
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-              placeholder="email@example.com"
-            />
+      <div className="relative z-10 w-full max-w-lg space-y-8">
+        <div className="rounded-2xl bg-white/70 p-10 shadow-xl shadow-black/5 backdrop-blur-xl">
+          <div className="mb-6 flex justify-center">
+            <img src="/logo.png" alt="Era Med Pharmaceuticals" className="h-40 object-contain" />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              {t('auth.password')}
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-            />
-          </div>
+          {resetSent ? (
+            <div className="text-center space-y-4">
+              <p className="text-green-600 font-medium">Password reset link sent!</p>
+              <p className="text-sm text-muted-foreground">
+                Check your email inbox at <strong>{email}</strong> for the reset link.
+              </p>
+              <button
+                onClick={() => setResetSent(false)}
+                className="text-sm text-primary hover:underline"
+              >
+                Back to login
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium mb-1.5">{t('auth.email')}</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full rounded-lg border bg-white/60 px-4 py-3 text-base backdrop-blur-sm"
+                  placeholder="email@example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">{t('auth.password')}</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full rounded-lg border bg-white/60 px-4 py-3 text-base backdrop-blur-sm"
+                />
+              </div>
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  Remember Me
+                </label>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-sm text-primary hover:underline"
+                  disabled={loading}
+                >
+                  Forgot Password?
+                </button>
+              </div>
+
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              <button
+                type="submit"
+                disabled={loading || isLocked}
+                className="w-full rounded-lg bg-primary px-6 py-3 text-base font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              >
+                {loading ? 'Please wait...' : isLocked ? `Locked (${lockoutRemaining}m)` : t('auth.login')}
+              </button>
+            </form>
           )}
+        </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-          >
-            {loading ? t('common.loading') : t('auth.login')}
-          </button>
-        </form>
-
-        <p className="mt-4 text-center text-xs text-muted-foreground">
-          {t('auth.forgotPassword')}
-        </p>
+        <div className="rounded-2xl bg-white/70 p-8 shadow-xl shadow-black/5 backdrop-blur-xl">
+          <p className="mb-4 text-center text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Dev Quick Login
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {DEV_USERS.map((u) => (
+              <button
+                key={u.email}
+                onClick={() => devLogin(u.email, u.role)}
+                className="rounded-lg border bg-white/60 px-4 py-3 text-sm font-medium backdrop-blur-sm hover:bg-accent transition-colors"
+              >
+                {u.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

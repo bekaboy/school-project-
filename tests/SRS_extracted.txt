@@ -1,0 +1,1061 @@
+  
+                         ADDIS ABABA UNIVERISTY
+           ADDIS ABABA INSTITUTE OF TECHNOLOGY
+         CENTER OF INFORMATION TECHNOLOGY AND
+SCIENTIFIC COMPUTING DEPARTMENT OF SOFTWARE ENGINEERING
+PHARMACEUTICAL WHOLESALE INVENTORY AND SALSE MANAGEMENT SYSTEM
+SOFTWARE REQUIREMENT SPECIFICATION 
+(SRS)
+
+PREPARED BY (SECTION-1 GROUP – 4) 
+BEREKET KASSAHUN (ID: ATE/7647/16) 
+BAROK FIKADU (ID: ATE/5341/16) 
+SEMEA DEJENE (ID: ATE/3155/16) 
+EYOB HAILEMARIAM (ID: ATE/7299/16) 
+YAPHET YOSEF (ID: ATE/2043/16) 
+TSIGEREDA DEMEKE (ID: ATE/3696/16) 
+
+Date:3/28/2026     
+Revision History
+
+
+Document Approval
+
+The following Software Requirements Specification has been accepted and approved by the following:
+
+
+
+
+
+
+
+
+
+
+
+
+
+Table of Content
+Document Approval	ii
+List of Tables	iv
+List of figures	v
+Definitions, Acronyms, and Abbreviations	vi
+DECLARATION	vii
+1. Introduction	9
+1.1 Purpose	9
+1.2 Scope	9
+1.3 Overview	10
+2. General Description	10
+2.1 Product Perspective	11
+2.2 Product Functions	12
+2.3 User Characteristics	12
+2.4 General Constraints	13
+3. Specific Requirements	15
+3.1 External Interface Requirements	15
+3.1.1 User Interfaces	15
+3.1.2 Hardware Interfaces	16
+3.1.3 Software Interfaces	16
+3.1.4 Communications Interfaces	14
+3.2 Functional Requirements	17
+3.2.1 User Authentication and Session Management	18
+3.2.2 User Management (Administrative) t	18
+3.2.3 Product Management	19
+3.2.4 Batch/Lot Management	20
+3.2.5 Inventory Management and Stock Tracking	21
+3.2.6 Stock Adjustments	22
+3.2.7 Customer Management	24
+3.2.8 Sales Order Management	24
+3.2.9 Official Invoice Generation	25
+3.2.10 Delivery Management	26
+3.2.11 Reporting Module	27
+3.3 Use Cases	28
+3.3.1 Actors and Goals	28
+3.3.2 Use Case Diagram	29
+3.3.3 Formal Use Cases	30
+3.4 Non-Functional Requirements	30
+3.4.1 Performance	30
+3.4.2 Reliability	31
+3.4.3 Availability	32
+3.4.4 Security	32
+3.4.5 Maintainability	33
+3.4.6 Portability	34
+3.5 Inverse Requirements	34
+3.6 Design Constraints	35
+3.7 Logical Database Requirements	36
+3.8 Other Requirements	36
+4. Change Management Process	37
+References	39
+A. Appendices	40
+A.2 Appendix 1	40
+
+
+
+
+
+
+
+
+
+List of Tables 
+
+
+
+
+
+
+
+
+
+
+
+
+
+List of figures 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Definitions, Acronyms, and Abbreviations
+This subsection provides definitions of all terms, acronyms, and abbreviations required to properly interpret the SRS document.
+ERP- Enterprise Resource Planning
+FIFO - First In First Out (inventory valuation method)
+FEFO - First Expired First Out (prioritize selling near-expiry items)
+GUI - Graphical User Interface
+IMS - Inventory Management System
+KPI - Key Performance Indicator
+PDF - Portable Document Format
+RLS - Row Level Security (database row filtering)
+REST - Representational State Transfer (API style)
+Saa* - Software as a Service
+Supabase - Backend platform providing PostgreSQL database, authentication, and APIs
+UAT - User Acceptance Testing
+UX - User Experience
+MVP - Minimum Viable Product
+Pharmaceutical Terms
+- Batch/Lot Number: Identifier for products manufactured together
+- Expiry Date: Date after which pharmaceutical product must not be sold/used
+- Proforma Invoice: Preliminary invoice issued before payment, for customer review
+- FEFO: First Expired First Out - prioritize selling batches closest to expiry
+
+
+
+
+
+
+
+
+DECLARATION
+We declare that this written submission represents our ideas in our own words and where others' ideas or words have been included. We have adequately cited and referenced the original sources. We also declare that we have adhered to all principles of academic honesty and integrity and have not misrepresented or fabricated or falsified any idea/data/fact/source in our submission. We understand that any violation of the above will be cause for disciplinary action by the Institute and can also evoke penal action from the sources which have thus not been properly cited or from whom proper permission has not been taken when needed.
+Group NO Team Date: 28-03-2026
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1. Introduction
+The introduction to the Software Requirement Specification (SRS) document provides an overview of the complete specification. This document contains all the information needed by a software engineer to adequately design and implement the pharmaceutical wholesale inventory and sales management software product described by the requirements listed herein.
+1.1 Purpose
+The purpose of this SRS document is to define the functional and non-functional requirements for the Pharmaceutical Wholesale Inventory and Sales Management System intended for Era Med Pharmaceutical Wholesale PLC. The document serves as a contractual basis between the development team and stakeholders, providing a detailed specification that will guide design, implementation, testing, and validation activities. The intended audience includes software developers, project managers, quality assurance testers, and business stakeholders who will review and approve the system requirements.
+1.2 Scope
+This Software Requirements Specification covers the development of a computerized Inventory and Sales Management System for Era Med Pharmaceutical Wholesale PLC, a pharmaceutical wholesaler operating in Addis Ababa, Ethiopia.
+What the system will do:
+The system will replace the company's current manual and semi-digital processes with an integrated digital platform. The system will:
+- Manage pharmaceutical product information including batch numbers, expiry dates, and stock quantities
+- Track inventory movements in real-time using FIFO (First In First Out) deduction logic
+- Alert users about products approaching expiry (within 90 days) and low stock levels
+- Support the complete sales workflow from order creation to delivery confirmation
+- Enable sales representatives to view real-time stock availability
+- Provide payment verification capabilities with proof documentation
+- Coordinate delivery operations with status tracking
+- Generate automated reports including sales performance, inventory levels, and financial summaries
+- Provide a management dashboard with key performance indicators
+- Maintain a complete audit trail of all critical operations
+- Implement role-based access control with five distinct user roles
+- Support both Amharic and English languages with user-toggle functionality
+- Operate as a web-based application accessible from computers and mobile devices
+What the system will not do (Out of Scope):
+- Replace the company's existing communication methods (phone, WhatsApp, Telegram) - though it will reduce dependency on them for operational coordination
+- Integrate with external banking systems for automatic payment verification
+- Provide customer-facing online ordering capabilities
+- Support multiple branch locations or centralized multi-warehouse operations
+- Include supplier management or purchase order generation from suppliers
+- Provide advanced accounting features beyond basic receipt generation
+- Offer native mobile applications (only responsive web design)
+- Implement SMS or email notification systems
+- Support barcode scanning hardware integration
+- Include real-time GPS tracking for delivery vehicles
+- Perform predictive analytics or AI-based demand forecasting
+- Manage employee payroll or HR functions
+The system scope is limited to Era Med Pharmaceutical Wholesale PLC's single-location operations and will serve approximately 8 users managing 20-30 pharmaceutical products with multiple batch variations. The system is designed as a standalone web application with no planned integration with external enterprise systems beyond basic database operations.
+1.3 Overview
+This SRS document is organized according to the IEEE SRS template standard. Section 2 provides a general description of the product from a high-level perspective. Section 3 contains detailed specific requirements organized by category including external interfaces, functional requirements, use cases, non-functional requirements, design constraints, and database requirements. Section 4 describes the change management process that will be used to modify requirements throughout the project lifecycle. Appendices provide supporting diagrams and detailed specifications.
+
+
+
+
+2. General Description
+This section describes general factors that affect the product and its requirements without stating specific requirements. It provides context to make the detailed requirements easier to understand.
+2.1 Product Perspective
+The Pharmaceutical Wholesale Inventory and Sales Management System is a standalone web application that will operate as a comprehensive business management solution for pharmaceutical wholesale operations. The system will integrate multiple functional areas including inventory management, sales order processing, payment verification, delivery management, and reporting into a unified platform.
+The system consists of:
+- A frontend web interface accessible via standard web browsers
+- A PostgreSQL database hosted on Supabase cloud platform
+- Authentication and authorization services provided by Supabase Auth
+- Server-side APIs for data operations and business logic
+- Storage services for payment proofs and product images
+The system does not directly interface with external pharmaceutical systems but may later integrate with accounting software or banking APIs as future enhancements.
+2.2 Product Functions
+The system provides the following high-level functions:
+User Management and Authentication:
+- Secure login and logout functionality
+- Role-based access control with five distinct roles
+- Password reset capability
+- Session management with automatic timeout
+Product and Batch Management:
+- Create, read, update, and delete product records with comprehensive pharmaceutical information
+- Manage batch/lot numbers with expiry dates and manufacturing dates
+- Track product images and storage requirements
+- Maintain product category and manufacturer information
+Inventory Management:
+- Real-time stock level tracking across all products and batches
+- Automatic stock deduction using FIFO (First In First Out) method
+- Stock adjustment functionality for damaged, expired, returned, or corrected inventory
+- Expiry alerts for products expiring within 90 days
+- Minimum stock level alerts based on reorder quantities
+- Comprehensive inventory audit trail
+Sales Management:
+- Create and manage customer sales orders with multiple line items
+- Real-time stock availability validation during order entry
+- Generate proforma invoices for customer review
+- Automatic invoice generation after payment verification
+- Order status tracking through complete workflow
+- Customer relationship management with contact information
+Payment Verification:
+- Upload payment proof documentation (images or PDFs)
+- Verify or reject customer payments with detailed notes
+- Generate numbered receipts for verified payments
+- View payment history and status reports
+- Block delivery preparation for unpaid orders
+Delivery Management:
+- Assign orders to delivery drivers
+- Driver interface for viewing assigned deliveries
+- Delivery status updates (delivered, failed, rescheduled)
+- Capture delivery confirmation details including signatures
+- Delivery performance tracking and reporting
+Reporting and Dashboard:
+- Real-time dashboard with 10+ KPI widgets
+- Interactive charts showing sales trends, product distribution, and payment methods
+- Weekly automated reports generated and emailed to management
+- Comprehensive report library with date range filtering
+- Export capabilities to PDF and Excel formats
+System Administration:
+- User account creation and management
+- Audit logging of all critical system actions
+- System configuration and settings management
+- Data import/export functionality
+2.3 User Characteristics
+The system will be used by five distinct user roles with varying technical proficiencies:
+Sales Representatives:
+- Moderate computer literacy
+- Familiar with pharmaceutical products and customers
+- Primary goal: efficiently create orders and serve customers
+- Will benefit from intuitive, fast order entry interface
+Store Managers:
+- High computer literacy or willingness to learn
+- Responsible for inventory accuracy and control
+- Need detailed inventory views and adjustment capabilities
+- Require clear visibility into stock levels, expiry dates, and alerts
+Finance Officers:
+- Moderate to high computer literacy
+- Focus on payment verification and receipt generation
+- Need secure document upload and verification workflow
+- Require clear audit trails for financial compliance
+Delivery Drivers:
+- Possibly lower computer literacy
+- Need simple, mobile-friendly interface
+- Primary goal: view assigned deliveries and update status quickly
+- May use smartphones or tablets in the field
+- Require minimal training and intuitive control
+Technical Managers/Owners:
+- Advanced technical understanding
+- Need comprehensive access to all system features
+- Require detailed reporting and analytics capabilities
+- Responsible for user management and system configuration
+- Will use dashboard for strategic decision-making
+All users will have basic web browser experience. The system will be designed with usability as a priority, particularly for delivery drivers who may have limited technical background. The bilingual interface (Amharic and English) accommodates users with different language preferences.
+2.4 General Constraints
+The following constraints affect system design and implementation:
+Technology Constraints:
+- Must use Supabase as the backend platform with PostgreSQL database
+- Must implement Row Level Security (RLS) for data protection
+- Frontend must be a web application compatible with modern browsers
+- PDF generation capability required for invoices and reports
+- Real-time updates optional but desirable
+Performance Constraints:
+- System must support up to 10 concurrent users
+- Page load time must not exceed 3 seconds
+- Transaction processing must complete within 2 seconds
+- Report generation must complete within 5 seconds
+Security Constraints:
+- All data transmission must use HTTPS encryption
+- Session timeout after 30 minutes of inactivity
+- Role-based access control enforced at database level
+- Audit logging required for all critical operations
+- Password policies requiring strong passwords
+Data Constraints:
+- Database size limited by Supabase free tier (500 MB initial)
+- Storage limited to 10 GB on free tier
+- Designed for small-scale operation: 30 products, 100 customers, 15 orders per day
+- Must handle product images and payment proof documents
+Timeline Constraints:
+- Project duration limited to 8 weeks (2 months)
+- Development must follow iterative sprint approach
+- User training and documentation required within timeline
+- Must allow time for user acceptance testing
+Resource Constraints:
+- Minimal budget requiring use of free tier services
+- Single branch deployment only (no multi-branch support initially)
+- No dedicated hardware purchases planned
+- Development by student team with learning curve for technologies
+Regulatory Constraints:
+- Must comply with pharmaceutical record-keeping requirements
+- Audit trails required for all inventory and financial transactions
+- Data retention policies must preserve all records indefinitely
+- Must support professional invoice formats with company stamp areas
+2.5 Assumptions and Dependencies
+The following assumptions are made in developing these requirements:
+Business Assumptions:
+- The organization has approximately 30 pharmaceutical products in inventory
+- Daily order volume ranges from 10 to 15 orders on average
+- Customer database contains approximately 100 active customers
+- Single physical location for inventory and operations
+- Five user roles will adequately represent all system users
+- Delivery operations are local within Addis Ababa area
+- Payment verification occurs within 1-2 days of order placement
+- Delivery typically occurs within 24 hours after payment verification
+Technical Assumptions:
+- Reliable internet connectivity will be available for all users
+- Users will have access to modern web browsers (Chrome, Firefox, Safari, Edge)
+- Mobile devices used by drivers will have camera capability for potential future signature capture
+- Supabase free tier will suffice for initial production deployment
+- Hiring of hosting services (Vercel, Netlify) will provide adequate free tiers
+- System backup requirements can be met through Supabase automated backups
+- PDF generation libraries will function properly for invoice templates
+Data Assumptions:
+- Sample product and customer data will be provided for initial system setup
+- Existing invoice and proforma formats will be made available for replication
+- Company logo and branding assets will be provided for UI customization
+- Tax rates and financial configurations are known and stable
+- Product categories and manufacturers are well-defined and limited in number
+Dependencies:
+- Access to Supabase cloud services must be established before development begins
+- Design assets (logo, color schemes, invoice templates) must be provided by client
+- Sample data files (products, customers, current stock) must be delivered to development team
+- Stakeholder availability for weekly review meetings and feedback sessions
+- User acceptance testing sessions must be scheduled after system deployment
+- Training environment must be available before user training begins
+Risks to Assumptions:
+If any of these assumptions prove false, the following impacts may occur:
+- Higher-than-expected data volumes may require database optimization
+- Limited internet connectivity may necessitate offline capabilities
+- Complex invoice formatting requirements may extend development time
+- Stakeholder unavailability may delay requirement clarification and approva
+3. Specific Requirements
+This section contains all the software requirements at a level of detail sufficient to enable designers to design a system to satisfy those requirements, and testers to test that the system satisfies those requirements.  Throughout this section, every stated requirement should be externally perceivable by users, operators, or other external systems.  These requirements should include at a minimum a description of every input (stimulus) into the system, every output (response) from the system and all functions performed by the system in response to an input or in support of an output. The following principles apply:
+All requirements are uniquely identified using a hierarchical numbering system for traceability. Requirements are stated using standard terminology:
+SHALL indicates a mandatory requirement
+SHOULD indicates a desirable but deferrable requirement
+MAY indicates an optional capability
+
+3.1 External Interface Requirements
+3.1.1 User Interfaces
+The system shall provide a web-based graphical user interface accessible through standard web browsers. The interface shall be responsive and function on desktop computers, tablets, and smartphones with screen sizes from 320px to 1920px width.
+Interface Characteristics:
+		Requirement User Interface
+REQ-UI-001: The system SHALL provide a login screen with email/phone field, password field, "Remember Me" checkbox, and password reset link.
+REQ-UI-002: Upon successful authentication, the system SHALL redirect users to a role-specific dashboard showing relevant information and available actions.
+REQ-UI-003: The system SHALL display the current user's name, role, and a logout button in the header of every authenticated page.
+REQ-UI-004: The system SHALL provide a language toggle button (Amharic/English) in the header that immediately switches all UI text without page refresh.
+REQ-UI-005: The system SHALL display loading indicators for any operation expected to take longer than 500 milliseconds.
+REQ-UI-006: The system SHALL display confirmation dialogs for destructive actions (delete, deactivate, stock adjustment exceeding threshold).
+REQ-UI-007: The system SHALL use consistent color coding for alerts:
+Red: Expired products, critical errors, stock deficits
+Yellow/Orange: Products expiring within 90 days, low stock warnings
+Green: Success messages, normal stock levels
+REQ-UI-008: The system SHALL provide form validation with inline error messages before submission.
+REQ-UI-009: All data entry forms SHALL include clear field labels, placeholder text where helpful, and indicate required fields with an asterisk (*).
+REQ-UI-010: The system SHALL support keyboard shortcuts for common operations (Ctrl+S to save, Ctrl+P to print invoice).
+3.1.2 Hardware Interfaces
+The system has no direct hardware interface requirements. All interactions with hardware devices occur through the operating system and browser:
+REQ-HW-001: The system SHALL generate PDF documents that can be printed on standard office printers (A4 paper size).
+REQ-HW-002: The system SHALL support file uploads from any device with a file system (images, PDFs for payment proofs).
+REQ-HW-003: The system SHALL function on devices with standard input methods (keyboard, mouse, touch screen).
+REQ-HW-004: The system SHALL NOT require any specialized hardware (barcode scanners, receipt printers) for core functionality.
+3.1.3 Software Interfaces
+The system interfaces with the following external software components:
+			Requirements Software
+REQ-SW-001: The system SHALL communicate with the Supabase backend using REST API calls over HTTPS.
+REQ-SW-002: The system SHALL use Row Level Security (RLS) policies defined in Supabase to enforce data access restrictions.
+REQ-SW-003: The system SHALL generate PDF documents using client-side PDF generation libraries without requiring server-side PDF services.
+REQ-SW-004: The system SHALL export reports to Microsoft Excel-compatible format (XLSX) using client-side conversion libraries.
+REQ-SW-005: The system SHALL NOT require integration with any external enterprise systems (ERP, accounting software) in the initial version.
+REQ-SW-006: The system SHALL store uploaded files (payment proofs, product images) in Supabase Storage with appropriate access controls.
+REQ-SW-007: The system SHALL use browser local storage to persist user preferences (language, dashboard layout) across sessions.
+3.1.4 Communications Interfaces
+REQ-COM-001: All communications between the client and server SHALL use HTTPS protocol with TLS 1.2 or higher.
+REQ-COM-002: The system SHALL communicate with the backend via RESTful API endpoints with JSON data format.
+REQ-COM-003: API requests SHALL include authentication tokens (JWT) in the Authorization header for all authenticated endpoints.
+REQ-COM-004: The system SHALL handle network interruptions gracefully with automatic retry logic and user notifications.
+REQ-COM-005: The system SHALL implement request timeouts of 30 seconds for API calls; operations exceeding this SHALL be canceled with appropriate error messages.
+REQ-COM-006: The system SHALL use WebSocket or Supabase Realtime for real-time updates to the dashboard 
+3.2 Functional Requirements
+3.2.1 User Authentication and Session Management
+REQ-AUTH-001: The system SHALL allow users to authenticate using email address and password.
+REQ-AUTH-002: Passwords SHALL be stored using bcrypt hashing with a minimum work factor of 10.
+REQ-AUTH-003: The system SHALL provide password reset functionality via email with time-limited reset tokens (24 hours).
+REQ-AUTH-004: The system SHALL lock user accounts after 5 failed login attempts within 15 minutes; unlock requires administrator action.
+REQ-AUTH-005: User sessions SHALL expire after 30 minutes of inactivity.
+REQ-AUTH-006: Users SHALL be able to extend their session by performing any action before timeout.
+REQ-AUTH-007: The system SHALL support "Remember Me" functionality that extends session duration to 7 days.
+REQ-AUTH-008: Upon login, the system SHALL log the event with timestamp, IP address, and user agent in the audit log.
+REQ-AUTH-009: The system SHALL NOT store passwords in plain text in any database, log, or configuration file.
+REQ-AUTH-010: The system SHALL enforce password complexity: minimum 8 characters, at least one uppercase, one lowercase, one number.
+3.2.2 User Management (Administrative)
+REQ-UM-001: Only users with Technical Manager/Owner role SHALL have access to user management functions.
+REQ-UM-002: The system SHALL allow creation of new user accounts with the following fields:
+
+Full Name (required)
+Email Address (required, unique)
+Phone Number (optional)
+Role (required, from predefined roles list)
+Initial password (system-generated or manually set)
+
+REQ-UM-003: The system SHALL support the following user roles:
+
+Sales Representative
+Store Manager
+Finance Officer
+Delivery Driver
+Technical Manager/Owner
+
+REQ-UM-004: The system SHALL allow editing of user information: name, phone, role, status (active/inactive).
+REQ-UM-005: The system SHALL allow administrators to deactivate user accounts; deactivated accounts cannot log in.
+REQ-UM-006: The system SHALL allow administrators to reset passwords for any user; password reset SHALL generate a temporary password emailed to the user.
+REQ-UM-007: The system SHALL display a list of all users with search and filter capabilities (by role, status).
+REQ-UM-008: The system SHALL log all user management actions (create, edit, deactivate, password reset) in the audit log.
+3.2.3 Product Management
+REQ-PROD-001: The system SHALL allow Store Manager and Technical Manager to create new pharmaceutical products with the following required fields:
+REQ-PROD-002: The system SHALL allow optional fields:
+
+Product Image (file upload)
+Product Description (text)
+Minimum Order Quantity (integer, default 1)
+Special Handling Instructions (text)
+
+REQ-PROD-003: The system SHALL auto-generate a unique Product ID (format: PROD-YYYY-XXXXX) when a product is created.
+REQ-PROD-004: The system SHALL allow editing of all product fields except Product ID.
+REQ-PROD-005: The system SHALL NOT allow deletion of products that have associated batches or sales history; instead, allow deactivation (Active Status = false).
+REQ-PROD-006: The system SHALL allow product search by generic name, brand name, product ID, or category with auto-complete suggestions.
+REQ-PROD-007: The system SHALL display product list with pagination (25 items per page), sorting (by name, ID, price), and filtering (by category, active status).
+3.2.4 Batch/Lot Management
+REQ-BATCH-001: The system SHALL allow Store Manager and Technical Manager to add batches to existing products with the following fields:
+REQ-BATCH-002: The system SHALL NOT allow duplicate batch numbers for the same product.
+REQ-BATCH-003: The system SHALL NOT allow batch creation with expiry date before manufacturing date.
+REQ-BATCH-004: The system SHALL automatically set batch status to "Expired" when expiry date is passed (via daily batch job).
+REQ-BATCH-005: The system SHALL NOT allow sales from batches with status "Expired" or "Quarantined".
+REQ-BATCH-006: The system SHALL track batch-level stock quantities; when products are sold, quantity is deducted from specific batches.
+REQ-BATCH-007: The system SHALL display batch information in product detail view, including remaining quantity and expiry status.
+REQ-BATCH-008: The system SHALL allow batch status changes (Active ↔ Quarantined) with reason documentation.
+3.2.5 Inventory Management and Stock Tracking
+REQ-INV-001: The system SHALL maintain real-time stock quantities calculated as sum of all active batch quantities for each product.
+REQ-INV-002: When a sales order is finalized (invoice generated), the system SHALL deduct stock using FIFO (First In First Out) method: oldest batches (by manufacturing date or receipt date) are used first.
+REQ-INV-003: The system SHALL display current stock levels in the inventory view with the following information:
+Product name
+Total available quantity
+Quantity by batch (with expiry dates)
+Status indicators (low stock, expiring soon, expired)
+REQ-INV-004: The system SHALL automatically highlight products with total stock ≤ Recommended Reorder Quantity with a "Low Stock" indicator.
+REQ-INV-005: The system SHALL automatically highlight batches with expiry date within 90 days with an "Expiring Soon" indicator.
+REQ-INV-006: The system SHALL NOT display expired batches in the available stock count for sales.
+REQ-INV-007: The system SHALL maintain stock movement history showing:
+Date and time
+Transaction type (Sale, Stock Adjustment, Batch Receipt)
+Product and batch
+Quantity change
+User who performed the action
+Reference (Order ID, Adjustment ID)
+REQ-INV-008: The system SHALL calculate inventory valuation using FIFO cost method for financial reporting.
+
+
+
+
+
+3.2.7 Customer Management
+REQ-CUST-001: The system SHALL maintain customer records with the following fields:
+REQ-CUST-002: The system SHALL allow CRUD operations on customers by Store Manager and Technical Manager.
+REQ-CUST-003: The system SHALL allow Sales Representatives to view customer list and details for order creation.
+REQ-CUST-004: The system SHALL provide customer search by name, phone, or ID with auto-complete.
+REQ-CUST-005: The system SHALL display customer order history, including dates, amounts, and payment status.
+REQ-CUST-006: The system SHALL enforce credit limits: if customer has exceeded credit limit, system SHALL warn the user and may block orders (configurable).
+3.2.8 Sales Order Management
+REQ-ORDER-001: Sales Representatives and Technical Manager SHALL be able to create sales orders.
+REQ-ORDER-002: Sales order creation SHALL include:
+Order Header:
+
+Order ID (auto-generated: SO-YYYYMMDD-XXXXX)
+Customer (selection from customer list)
+Order Date (auto-populated)
+Sales Representative (auto-populated from logged-in user)
+Order Status (initial: Draft)
+Delivery Address (can differ from customer address)
+Special Instructions
+
+
+Order Items:
+
+Product (selection from active products with available stock)
+Quantity (must be positive integer)
+Unit Price (from product selling price, can be overridden by Technical Manager only)
+Batch Selection (automatic FIFO or manual for store manager)
+Total Line Amount
+
+REQ-ORDER-003: During order creation, the system SHALL validate that sufficient stock is available for each product before adding to order.
+REQ-ORDER-004: The system SHALL display real-time available stock quantity when selecting products.
+REQ-ORDER-005: The system SHALL calculate order totals:
+Subtotal = sum of line amounts
+Tax = subtotal × tax rate (configurable per product)
+Total = subtotal + tax
+REQ-ORDER-006: The system SHALL support order statuses with transitions
+REQ-ORDER-007: The system SHALL NOT allow order modification after Proforma Generated status.
+REQ-ORDER-008: The system SHALL NOT allow delivery preparation for orders with status other than "Verified".
+REQ-ORDER-009: The system SHALL maintain complete order history showing all status changes with timestamps and user.
+REQ-ORDER-010: Sales Representatives SHALL only see orders they created (unless Technical Manager).
+
+3.2.9 Official Invoice Generation
+REQ-INV-001: The system SHALL generate an official invoice PDF when payment is verified.
+REQ-INV-002: The official invoice SHALL include:
+
+Company header (logo, name, address, phone, email, TIN)
+"INVOICE" title
+Invoice number (unique, format: INV-YYYYMMDD-XXXXX)
+Invoice date
+Due date (if credit terms)
+Customer details
+Order details
+Itemized list with batch numbers
+Subtotal, tax, total
+Payment status: "PAID"
+Company stamp placeholder
+Terms and conditions
+
+REQ-INV-003: The system SHALL automatically generate a sequential invoice number.
+REQ-INV-004: When invoice is generated, the system SHALL:
+Create invoice record
+Update order status to "Invoice Generated"
+Deduct stock from batches (FIFO)
+Update inventory totals
+Record transaction in audit log
+REQ-INV-005: The system SHALL NOT allow invoice generation if stock is insufficient at time of generation (previously validated at order creation, but stock may have changed).
+3.2.12 Delivery Management
+REQ-DEL-001: Technical Manager SHALL be able to assign deliveries to Delivery Drivers.
+REQ-DEL-002: Delivery assignment SHALL include:
+
+Order ID
+Customer name, phone, address
+Delivery instructions
+Assigned driver
+Expected delivery date
+Priority (normal, urgent)
+
+REQ-DEL-003: Delivery drivers SHALL see only deliveries assigned to them.
+REQ-DEL-004: Delivery drivers SHALL have a mobile-friendly view showing:
+Delivery list (date, customer name, address, order ID)
+Click through for details (items, quantities, special instructions)
+Contact customer button (initiate phone call via device)
+REQ-DEL-005: Delivery drivers SHALL be able to update delivery status
+REQ-DEL-006: For failed deliveries, the system SHALL support rescheduling by Technical Manager.
+REQ-DEL-007: The system SHALL maintain delivery history showing:
+
+Driver name
+Delivery time
+Status changes
+Recipient name (for delivered)
+Failure reason (for failed)
+
+REQ-DEL-008: The system SHALL allow printing of delivery manifests (list of deliveries for a driver for a day).
+REQ-DEL-009: The system SHALL NOT allow marking an order as delivered if payment status is not "Verified".
+
+3.2.13 Reporting Module
+REQ-REP-001: The system SHALL provide report generation capabilities for Technical Manager/Owner.
+REQ-REP-002: All reports SHALL support date range selection (from date, to date).
+REQ-REP-003: All reports SHALL support export to PDF and Microsoft Excel (XLSX) formats.
+REQ-REP-004: The system SHALL generate the following sales reports:
+
+REQ-REP-005: The system SHALL generate the following inventory reports:
+
+3.Use Cases
+                        3.3.1 Actors and Goals
+	
+	
+
+
+                   3.3.2 Use Case Diagram
+
+                 3.3.3 Formal Use Cases
+UC-001: Create Sales Order
+Main Success Scenario:
+
+Technical Manager clicks "Reports" → "Sales Reports".
+System displays report selection screen with available report types.
+Technical Manager selects report type (e.g., "Sales by Product").
+System displays date range selector (default: current week).
+Technical Manager selects date range and applies filters.
+System queries data and generates report.
+System displays report in table format with summary statistics.
+Technical Manager reviews report.
+Technical Manager clicks "Export" to download PDF or Excel.
+System generates and downloads the fi
+3.4 Non-Functional Requirements		
+3.4.1 Performance Requirements
+
+3.4.2 Reliability Requirements
+
+
+3.4.3 Availability Requirements
+3.4.4 Security Requirements
+          
+                   3.4.6 Maintainability Requirements
+
+                       
+	 3.4.7 Portability Requirements
+
+	3.5 Inverse Requirements
+The following are explicitly NOT requirements for this system:
+REQ-INV-001: The system SHALL NOT include supplier/vendor management functionality. Supplier information is captured only at batch level.
+REQ-INV-002: The system SHALL NOT include purchase order generation for ordering from suppliers.
+REQ-INV-003: The system SHALL NOT include a customer-facing online ordering portal.
+REQ-INV-004: The system SHALL NOT include native mobile applications (iOS/Android). Responsive web design is sufficient.
+REQ-INV-005: The system SHALL NOT include SMS or email notification services in the initial version (email for weekly reports is included).
+REQ-INV-006: The system SHALL NOT include real-time GPS tracking for deliveries.
+REQ-INV-007: The system SHALL NOT integrate with banking APIs for automatic payment verification.
+REQ-INV-008: The system SHALL NOT include barcode scanning hardware integration.
+REQ-INV-009: The system SHALL NOT include temperature monitoring for storage conditions.
+REQ-INV-010: The system SHALL NOT include multi-branch or multi-warehouse support.
+REQ-INV-011: The system SHALL NOT include advanced accounting features (general ledger, accounts payable/receivable).
+REQ-INV-012: The system SHALL NOT include employee payroll or HR management.
+REQ-INV-013: The system SHALL NOT include predictive analytics or AI-based forecasting.
+REQ-INV-014: The system SHALL NOT support offline mode; continuous internet connectivity is required.
+REQ-INV-015: The system SHALL NOT include automated data migration from existing Excel files (manual data entry is acceptable).
+REQ-INV-016: The system SHALL NOT include credit card processing or integration with payment gateways.
+REQ-INV-017: The system SHALL NOT include a document management system beyond payment proof uploads.
+REQ-INV-018: The system SHALL NOT include chat or messaging functionality between users.
+ 	3.6 Design Constraints
+REQ-DES-001: The system SHALL be implemented as a web application accessible via browser, not a desktop application.
+REQ-DES-002: The frontend SHALL be implemented using React framework or vanilla HTML/CSS/JavaScript (team decision).
+REQ-DES-003: The backend SHALL use Supabase (PostgreSQL) as the database and authentication platform.
+REQ-DES-004: The system SHALL use Row Level Security (RLS) in Supabase for data access control.
+REQ-DES-005: The system SHALL be hosted on free-tier services (Supabase, Vercel/Netlify) with no monthly cost.
+REQ-DES-006: All code SHALL be maintained in a Git repository (GitHub) with version control.
+REQ-DES-007: The system SHALL be developed using a 2-month timeline (8 weeks) from project start.
+REQ-DES-008: The system SHALL be designed for a single branch/warehouse location only.
+REQ-DES-009: The system SHALL use English for data entry (product names, customer names) and support Amharic for UI text.
+REQ-DES-010: The system SHALL NOT require any paid software licenses; all tools SHALL be open-source or have free tiers.
+                           
+
+
+
+
+
+
+
+
+ 3.7 Logical Database Requirements
+REQ-DB-001: The system SHALL use a relational database (PostgreSQL) to store all persistent data.
+REQ-DB-002: The database SHALL maintain referential integrity through foreign key constraints.
+REQ-DB-003: The database SHALL enforce uniqueness constraints for:
+User email addresses
+Product ID
+Batch numbers per product
+Invoice numbers
+Proforma invoice numbers
+REQ-DB-004: The database SHALL support the following core entities (detailed schema in Appendix):
+REQ-DB-005: The database SHALL maintain transaction integrity for operations that affect multiple tables (e.g., order creation with items, stock deduction with invoice generation).
+REQ-DB-006: The database SHALL use indexes on frequently queried columns:
+
+users.email
+sales_orders.customer_id
+sales_orders.status
+batches.product_id
+batches.expiry_date
+products.generic_name
+customers.name
+
+REQ-DB-007: The database SHALL support full-text search on product names and descriptions.
+REQ-DB-008: All tables SHALL have created_at and updated_at timestamp columns.
+REQ-DB-009: Soft delete pattern SHALL be used for critical entities (users, products) via status fields rather than physical deletion.
+REQ-DB-010: The database SHALL be backed up daily automatically (via Supabase).
+
+3.8 Other Requirements
+3.8.1 Training Requirements
+REQ-TRAIN-001: The development team SHALL provide user training sessions totaling 2-4 hours covering all roles.
+REQ-TRAIN-002: A user manual SHALL be provided with step-by-step instructions and screenshots for each user role.
+REQ-TRAIN-003: An administrator manual SHALL be provided covering user management, system configuration, and troubleshooting.
+REQ-TRAIN-004: Sample data SHALL be provided for training purposes.
+
+3.8.2 Documentation Requirements
+REQ-DOC-001: The system SHALL include a README file with setup and deployment instructions.
+REQ-DOC-002: Source code SHALL include inline comments for complex logic.
+REQ-DOC-003: Database schema SHALL be documented with entity-relationship diagram.
+REQ-DOC-004: API endpoints (if custom) SHALL be documented.
+3.8.3 Legal Requirements
+REQ-LEG-001: The system SHALL comply with Ethiopian pharmaceutical record-keeping regulations (batch traceability, expiry monitoring).
+REQ-LEG-002: The system SHALL NOT store or process payment card information (PCI compliance not required).
+REQ-LEG-003: The system SHALL display a copyright notice and terms of use.
+REQ-LEG-004: User data SHALL be stored in accordance with applicable data protection practices.
+4. Change Management Process
+This section defines the process for managing changes to the Software Requirements Specification (SRS) throughout the project lifecycle. All changes must be controlled to ensure that the requirements remain accurate, consistent, and traceable.
+4.1 Change Request Submission
+Any stakeholder (project team member, client, advisor) may submit a change request. Change requests shall be documented using the Change Request Form (see Appendix A) and submitted to the project manager via email or issue tracking system (GitHub Issues).
+Each change request shall contain:
+
+Unique identifier (CR-XXX)
+Date of submission
+Submitter name and role
+Description of the change (including rationale)
+Priority (Low, Medium, High, Critical)
+Impact assessment (if known)
+
+
+
+
+
+
+4.2 Change Review and Approval
+The project manager, together with the technical lead, shall review all change requests weekly. The review committee shall evaluate each request based on
+
+Approved changes shall be categorized as:
+Minor Change: No significant impact on scope, schedule, or architecture. May be implemented immediately.
+Major Change: Affects project scope, schedule, or architecture. Requires formal approval from the client and academic advisor.
+4.3 Change Documentation and Traceability
+Upon approval, the change shall be documented in the Change Log (see Appendix B) and the SRS shall be updated accordingly. All changes shall be versioned, and the SRS version number shall be incremented according to semantic versioning:
+Major version increment (X.0): Significant changes to scope or architecture
+Minor version increment (x.Y): New requirements added or existing requirements modified
+Patch version increment (x.y.Z): Corrective changes (typos, clarifications)
+
+
+
+
+
+
+
+References
+The following documents and resources were referenced in the creation of this Software Requirements Specification:
+IEEE Std 830-1998, IEEE Recommended Practice for Software Requirements Specifications. IEEE Computer Society, 1998.
+Pressman, R. S. (2014). Software Engineering: A Practitioner’s Approach. 8th ed. McGraw-Hill Education.
+Sommerville, I. (2015). Software Engineering. 10th ed. Pearson Education.
+Cockburn, A. (2001). Writing Effective Use Cases. Addison-Wesley Professional.
+World Health Organization. (2011). Managing Drug Supply: The Selection, Procurement, Distribution, and Use of Pharmaceuticals. 3rd ed.
+Era Med Pharmaceutical Wholesale PLC. (2026). Project Proposal – Pharmaceutical Wholesale Inventory and Sales Management System. (Provided by the client).
+Supabase Documentation. (2026). Supabase Platform Overview. Retrieved from https://supabase.com/docs
+React Documentation. (2026). React – A JavaScript library for building user interfaces. Retrieved from https://reactjs.org
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Appendices
+Appendix A: Entity Relationship Diagram (ERD)
+
+
+--- TABLE 1 ---
+Date | Description | Author | Comments
+<date> | <Version 1> | <Your Name> | <First Revision>
+ |  |  | 
+ |  |  | 
+ |  |  | 
+
+--- TABLE 2 ---
+Signature | Printed Name | Title | Date
+ | <Your Name> | Lead Software Eng. | 
+ | A. David McKinnon | ADVISOR:MR. ADERAW S. | 
+ |  |  | 
+
+--- TABLE 3 ---
+Table | Title | Page
+Table 1 | Interface Characteristics | 15
+Table 2 | Software Interface Requirements | 16
+Table 3 | Product Management Required Fields | 19
+Table 4 | Batch/Lot Management Fields | 20
+Table 5 | Customer Management Fields | 23
+Table 6 | Sales Order Status Transitions | 24
+Table 7 | Sales Reports | 27
+Table 8 | Inventory Reports | 28
+Table 9 | Actors and Goals | 28
+Table 10 | Performance Requirements | 32
+Table 11 | Reliability Requirements | 33
+Table 12 | Availability Requirements | 33
+Table 13 | Security Requirements | 34
+Table 14 | Usability Requirements | 35
+Table 15 | Maintainability Requirements | 36
+Table 16 | Portability Requirements | 36
+Table 17 | Scalability Requirements | 37
+Table 18 | Core Entities – Data Dictionary (extract) | 44
+
+--- TABLE 4 ---
+Figure | Title | Page
+Figure 1 | Use Case Diagram | 29
+Figure 2 | Entity Relationship Diagram (ERD) | 44
+
+--- TABLE 5 ---
+Characteristic | Requirement
+Layout | Consistent layout across all pages with header, main content area, and optional sidebar
+Navigation | Role-based menu structure showing only accessible features for the logged-in use
+Language | Toggle between Amharic and English; preference stored per user session
+Responsiveness | Fluid layout that adapts to screen size; touch-friendly controls on mobile devices
+Feedback | Visual confirmation for all user actions (success messages, error alerts, loading indicators)
+Accessibility | Level AA compliance for color contrast, keyboard navigation, and screen reader compatibility
+
+--- TABLE 6 ---
+Software Component | Version | Purpose | Interface Type
+Web Browser | Modern (Chrome, Firefox, Safari, Edge latest 2 versions) | User interface rendering | HTTP/HTTPS
+Supabase Platform | Latest stable | Database, authentication, storage | REST API, JavaScript SDK
+PDF Generation Library | jsPDF or equivalent | Invoice and report generation | JavaScript API
+Charting Library | Chart.js or Recharts | Dashboard visualizations | JavaScript API
+Email Service | SMTP or Supabase Email | Automated report delivery | REST API
+
+--- TABLE 7 ---
+Field | Type | Description
+Generic Name | Text | International non-proprietary name
+Brand Name | Text | Trade/Brand name
+Strength | Text | e.g., "500mg", "250mg/5ml"
+Dosage Form | Dropdown | Tablet, Capsule, Syrup, Injection, Ointment, etc.
+Pack Size | Text | e.g., "10's", "20's", "100ml"
+Manufacturer | Text | Manufacturer company name
+Country of Origin | Text | Manufacturing country
+Unit of Measure | Dropdown | Strip, box, bottle, blister pack, vial
+Product Category | Dropdown | Therapeutic class (e.g., Antibiotics, Analgesics)
+Cost Price | Decimal | Purchase price from supplier
+Selling Price | Decimal | Price to customer
+Tax Rate | Percentage | VAT or other tax rate
+Recommended Reorder Quantity | Integer | Minimum stock level trigger
+Storage Requirements | Text | e.g., "Room Temperature", "Refrigerated 2-8°C"
+Active Status | Boolean | Product available for sale
+
+--- TABLE 8 ---
+Field | Type | Description
+Batch Number | Text | Unique batch identifier from manufacturer
+Product | Lookup | Reference to product ID
+Expiry Date | Date | Date after which product cannot be sold
+Manufacturing Date | Date | Date of manufacture
+Quantity Received | Integer | Initial quantity in this batch
+Supplier | Text | Name of supplier for this batch
+Date Received | Date | Auto-populated with current date
+Batch Status | Dropdown | Active, Expired, Quarantined
+
+--- TABLE 9 ---
+Field | Type
+Customer ID | Auto-generated
+Name | Text
+Contact Person | Text
+Phone | Text
+Alternate Phone | Text
+Email | Email
+Address | Text
+Tax ID | Text
+License Number | Text
+Payment Terms | Dropdown
+
+--- TABLE 10 ---
+From Status | To Status | Allowed Actions
+Draft | Proforma Generated | Generate Proforma Invoice
+Proforma Generated | Pending Payment | Send Proforma to Custome
+Pending Payment | Verified | Finance verifies payment
+Pending Payment | Cancelled | Sales Rep cancels (with reason)
+Verified | Invoice Generated | Generate Official Invoice
+Invoice Generated | In Transit | Assign to Driver
+In Transit | Delivered | Driver marks delivered
+In Transit | Failed | Driver marks failed
+Failed | Rescheduled | Technical Manager reschedules
+
+--- TABLE 11 ---
+Report Name | Content | Filters
+Daily Sales Report | Orders by day with totals, payment status | Date (single day)
+Weekly Sales Report | Summary by week, product breakdown | Week number, month
+Sales by Product | Quantities and amounts per product | Date range, product category
+Sales by Customer | Amounts and frequency per customer | Date range, customer type
+Sales by Sales Rep | Performance per sales representative | Date range, representative
+
+--- TABLE 12 ---
+Report Name | Content | Filters
+Current Stock Levels | All products with quantities and valuations | Product category, stock status
+Low Stock Report | Products below reorder level | Product category
+Expiry Alert Report | Batches expiring within specified period | Days ahead (30, 60, 90, custom)
+Expired Products Report | Batches that have expired | Date range of expiry
+Inventory Movement Report | All stock transactions (receipts, sales, adjustments) | Date range, transaction type
+Stock Valuation Report | Inventory value by FIFO cost | As of date
+Batch Traceability | Batch movements from receipt to sale | Batch number, product, date range
+
+--- TABLE 13 ---
+Actor | Role Description | Goals (Use Cases)
+Sales Representative | Creates sales orders, communicates with customers, generates proforma invoices | 1. Create Sales Order
+2. View Product Availability
+3. Generate Proforma Invoice
+4. View Own Orders
+5. Cancel Order (before payment)
+Store Manager | Manages products, batches, inventory levels, and stock adjustments | 6. Manage Product Catalog
+7. Manage Product Batches
+8. View Inventory
+9. Perform Stock Adjustment
+10. View Expiry Alerts
+11. View Low Stock Alerts
+Finance Officer | Verifies payments, generates receipts, manages payment records | 12. Verify Payment
+13. Generate Receipt
+14. View Payment History
+15. Reject Payment
+Delivery Driver | Views assigned deliveries, updates delivery status, handles failed deliveries | 16. View Assigned Deliveries
+17. Mark Delivery Status
+18. View Delivery History
+Technical Manager/Owner | Oversees all operations, generates reports, manages users, assigns deliveries | 19. View Dashboard
+20. Generate Sales Reports
+21. Generate Inventory Reports
+22. Generate Financial Reports
+23. Generate Delivery Reports
+
+--- TABLE 14 ---
+Element | Description
+Use Case Name | Create Sales Order
+Primary Actor | Sales Representative
+Scope | Pharmaceutical Wholesale System
+Level | User Goal
+Precondition | Sales Representative is logged into the system
+Success End Condition | A sales order is created with status "Draft", items are reserved in system (not deducted from stock)
+Failure End Condition | Order is not created
+Trigger | Sales Representative receives purchase request from customer
+
+--- TABLE 15 ---
+Requirement ID | Description | Target
+REQ-PERF-001 | Page load time for initial dashboard | ≤ 3 seconds under normal network conditions
+REQ-PERF-002 | Form submission response time (save, update) | ≤ 2 seconds
+REQ-PERF-003 | Report generation time for standard date ranges (≤ 30 days) | ≤ 5 seconds
+REQ-PERF-004 | Concurrent user support | Minimum 10 concurrent users
+REQ-PERF-005 | Search results display (product search, customer search) | ≤ 1 second
+REQ-PERF-006 | File upload processing (payment proof, product images) | ≤ 5 seconds for files ≤ 5MB
+REQ-PERF-007 | PDF generation for invoices | ≤ 3 seconds
+REQ-PERF-008 | API response time (95th percentile) | ≤ 500 milliseconds
+REQ-PERF-009 | Database query execution time for standard queries | ≤ 200 milliseconds
+REQ-PERF-010 | Dashboard real-time refresh interval | minutes (configurable)
+
+--- TABLE 16 ---
+Requirement ID | Description | Target
+REQ-REL-001 | System uptime (excluding scheduled maintenance) | ≥ 95% (measured monthly)
+REQ-REL-002 | Data backup frequency | Daily automated backups
+REQ-REL-003 | Backup retention period | Minimum 30 days
+REQ-REL-004 | Data recovery capability | Ability to restore from latest backup within 24 hours
+REQ-REL-005 | Mean Time Between Failures (MTBF) | ≥ 30 days
+REQ-REL-006 | Mean Time To Recovery (MTTR) | ≤ 4 hours for critical failures
+REQ-REL-007 | Error handling | All unhandled exceptions logged; user sees friendly error message
+REQ-REL-008 | Data integrity | No data loss on transaction failure; rollback capability
+REQ-REL-009 | Session persistence | User sessions survive temporary network interruptions
+
+--- TABLE 17 ---
+Requirement ID | Description | Target
+REQ-AVAIL-001 | System availability during business hours (Monday-Friday, 8:00 AM - 6:00 PM) | ≥ 98%
+REQ-AVAIL-002 | Scheduled maintenance windows | Sundays 2:00 AM - 4:00 AM, announced 48 hours in advance
+REQ-AVAIL-003 | Maximum scheduled downtime per month | ≤ 4 hours
+REQ-AVAIL-004 | Emergency maintenance response | Within 1 hour for critical issues
+REQ-AVAIL-005 | Graceful degradation | If external services fail (e.g., email), core functions remain available
+
+--- TABLE 18 ---
+Requirement ID | Description
+REQ-SEC-001 | All communications SHALL use HTTPS with TLS 1.2 or higher
+REQ-SEC-002 | Passwords SHALL be hashed using bcrypt (cost factor 10) before storage
+REQ-SEC-003 | Session tokens SHALL be stored securely (HttpOnly, Secure, SameSite flags)
+REQ-SEC-004 | Session timeout SHALL occur after 30 minutes of inactivity
+REQ-SEC-005 | Role-Based Access Control (RBAC) SHALL enforce permissions; users cannot access functions outside their role
+REQ-SEC-006 | Database Row Level Security (RLS) SHALL prevent users from viewing data from other roles
+REQ-SEC-007 | SQL injection prevention: All database queries SHALL use parameterized queries or ORM
+REQ-SEC-008 | XSS prevention: All user input SHALL be sanitized before display
+REQ-SEC-009 | CSRF protection: Forms SHALL include CSRF tokens
+REQ-SEC-010 | File uploads SHALL be validated for type and size; uploaded files SHALL be stored with random names, not executable
+REQ-SEC-011 | Audit logs SHALL capture all security-relevant events (logins, permission changes, sensitive data access)
+REQ-SEC-012 | Failed login attempts SHALL be rate-limited: 5 attempts in 15 minutes triggers account lockout
+REQ-SEC-013 | Password reset links SHALL expire after 24 hours
+REQ-SEC-014 | API endpoints SHALL require authentication for all non-public routes
+
+--- TABLE 19 ---
+Requirement ID | Description
+REQ-MAINT-001 | Source code SHALL be well-commented and follow consistent naming conventions
+REQ-MAINT-002 | The system SHALL have modular architecture with separation of concerns (UI, business logic, data access)
+REQ-MAINT-003 | Configuration parameters (API endpoints, timeout values, email settings) SHALL be externalized, not hard-coded
+REQ-MAINT-004 | Database schema changes SHALL be managed with migration scripts
+REQ-MAINT-005 | Code duplication SHALL be minimized (DRY principle)
+REQ-MAINT-006 | The system SHALL have comprehensive error logging for debugging
+REQ-MAINT-007 | Documentation SHALL include system architecture, database schema, and API documentation
+REQ-MAINT-008 | Third-party dependencies SHALL be clearly documented with versions
+REQ-MAINT-009 | Automated tests SHALL cover critical business logic (minimum 70% coverage for backend)
+
+--- TABLE 20 ---
+Requirement ID | Description
+REQ-PORT-001 | The frontend SHALL run on latest versions of Chrome, Firefox, Safari, and Edge
+REQ-PORT-002 | The system SHALL be responsive and function on iOS and Android mobile browsers
+REQ-PORT-003 | The system SHALL be deployable to any hosting platform that supports static sites (Vercel, Netlify, GitHub Pages)
+REQ-PORT-004 | The backend SHALL be deployable to Supabase (free tier) or any PostgreSQL-compatible environment
+REQ-PORT-005 | No proprietary or platform-specific technologies SHALL be used that would prevent migration
+
+--- TABLE 21 ---
+Criteria | Description
+Business Value | Does the change add significant value to the system?
+Feasibility | Can the change be implemented within the technical constraints?
+Impact on Scope | Does the change affect the project timeline or budget?
+Dependencies | Does the change require additional resources or external coordination?

@@ -1,0 +1,332 @@
+
+ADDIS ABABA UNIVERISTY  
+ADDIS ABABA INSTITUTE OF TECHNOLOGY  
+CENTER OF INFORMATION TECHNOLOGY AND 
+SCIENTIFIC COMPUTING DEPARTMENT OF SOFTWARE ENGINEERING 
+PHARMACEUTICAL WHOLESALE INVENTORY AND SALSE MANAGEMENT SYSTEM 
+Project Proposal 
+PREPARED BY (SECTION-1 GROUP – 4) 
+BEREKET KASSAHUN (ID: ATE/7647/16) 
+BAROK FIKADU (ID: ATE/5341/16) 
+SEMEA DEJENE (ID: ATE/3155/16) 
+EYOB HAILEMARIAM (ID: ATE/7299/16) 
+YAPHET YOSEF (ID: ATE/2043/16) 
+TSIGEREDA DEMEKE (ID: ATE/3696/16) 
+ADVISOR: MR. ADERAW S. 
+Date:3/14/2026 
+TABLE OF CONTENT 
+ 
+ 
+ 
+ 
+  
+LIST OF TABLES  
+Problem Statement Analysis……………………………………….………………………….10 
+Gant chart (project time line) …………………………………………………………………..20 
+Internal Communication…………………………………………………………………………22 
+External Communication and Reporting……………………..…………………………….22 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+ACRONYMS 
+This section presents the acronyms and abbreviations used throughout the proposal document. These abbreviations are commonly used within software engineering, pharmaceutical supply management, and information systems development to ensure concise communication of technical terms. 
+ 
+ 
+ 
+ 
+ 
+ 
+INTRODUCTION 
+Background of Era Med Pharmaceutical Wholesale PLC 
+The pharmaceutical supply chain plays a critical role in ensuring that essential medicines and medical equipment reach healthcare providers and ultimately patients in a timely and reliable manner. Pharmaceutical wholesalers act as an intermediary between pharmaceutical manufacturers or suppliers and healthcare service providers such as pharmacies, hospitals, clinics, and non-governmental organizations. Their operations involve purchasing pharmaceutical products in bulk, storing them safely in warehouses, and distributing them efficiently to various customers based on demand. 
+Era Med Pharmaceutical Wholesale PLC is a pharmaceutical wholesaling company operating in Sali Temret, Addis Ababa. The company was established on October 15, 2017, by a husband-and-wife entrepreneurial team who had several years of experience in the trading sector and identified a growing demand for reliable pharmaceutical distribution in the local healthcare market. Initially, the company began its operations on a small scale with a modest warehouse facility and a workforce of only three employees, focusing on supplying essential medicines to nearby pharmacies and clinics. 
+The organization currently employs eight staff members, each responsible for specific operational roles within the company. These employees include the owner of the company, a technical manager, a store (stock) manager, a finance officer, a delivery driver, and four sales representatives. Each of these staff members performs a specialized role that contributes to the overall functioning of the organization. 
+The sales representatives are primarily responsible for maintaining contact with customers and generating sales orders. They communicate with customers through phone calls, messaging applications such as Telegram, and SMS marketing campaigns. These sales representatives advertise available pharmaceutical products, respond to customer inquiries, and collect purchase orders from pharmacies, hospitals, and other buyers. Once an order is received, the sales representative prepares a proforma invoice listing the ordered products and their respective prices. 
+The finance officer plays a critical role in verifying payments made by customers. In most cases, customers make payments through bank transfers or direct bank deposits. After making the payment, customers send proof of transaction such as bank receipts or screenshots to the sales representatives through messaging platforms. The finance officer then verifies the payment before the order proceeds to the delivery stage. 
+The store manager is responsible for managing inventory within the warehouse. The warehouse occupies approximately 100 square meters and stores pharmaceutical products on organized shelves. Each product batch is tracked using traditional warehouse documentation methods such as bin cards and stock cards. These cards record detailed information including product name, batch number, expiry date, supplier information, quantities received, and quantities sold. The store manager manually updates these cards whenever products are received from suppliers or sold to customers. In addition, the store manager periodically updates an Excel spreadsheet that summarizes available stock levels and product information, which is then shared with the sales representatives and the finance department. 
+The technical manager oversees the operational planning of the company. This includes setting product prices, coordinating workflow among departments, and monitoring overall operational activities. The technical manager also evaluates company performance and supports decision-making processes related to product distribution and sales strategies. 
+The delivery driver is responsible for transporting sold products from the warehouse to customers. Once an order is confirmed and the payment is verified, the products are prepared for dispatch. The driver receives the delivery details including the customer’s name, location, phone number, product list, and quantity. Upon delivery, the driver collects the customer's signature as confirmation that the goods have been successfully received. 
+Despite the company's structured workflow and clearly defined roles among employees, most operational activities are currently conducted using manual processes and basic digital tools such as spreadsheets. Inventory management relies heavily on handwritten stock cards and bin cards, while sales and financial records are maintained using Excel sheets and printed receipts. Communication between departments often occurs through phone calls and messaging applications rather than through an integrated information system. 
+While this approach has been sufficient for managing the company's relatively small inventory of approximately 20 to 30 pharmaceutical products with multiple brands and batch variations, it has increasingly revealed several operational limitations. Manual record keeping and decentralized information management make it difficult to maintain accurate real-time stock information, track product expiry dates effectively, and coordinate activities between the sales team, warehouse staff, and management. 
+In modern pharmaceutical distribution environments, companies increasingly rely on computerized inventory and sales management systems to ensure efficient operations, reduce human error, and improve access to accurate business data. Such systems provide centralized databases where information related to products, inventory levels, sales transactions, payments, deliveries, and customer records can be stored and accessed securely by authorized users. 
+Recognizing the need for improved operational efficiency and better information management, this project proposes the development of a computerized Inventory and Sales Management System for Era Med Pharmaceutical Wholesale PLC. The proposed system aims to replace the current manual and semi-digital processes with a centralized software platform that allows employees to perform their tasks more efficiently while ensuring accurate data management and real-time access to business information. 
+The system will support the company's core operational activities including inventory tracking, product batch and expiry monitoring, sales order processing, payment verification, delivery coordination, and management reporting. By implementing such a system, the company will be able to streamline its internal processes, improve communication between departments, reduce operational errors, and enhance its overall business performance. 
+The Existing System 
+The current operational system of Era Med Pharmaceutical Wholesale PLC relies largely on manual procedures and basic spreadsheet tools to manage its inventory, sales, financial transactions, and delivery operations. Although the company has a structured workflow and defined responsibilities among employees, most processes are conducted through paperbased documentation, telephone communication, and manual data entry in spreadsheet files. 
+The company operates from a single branch location with an attached warehouse facility that stores pharmaceutical products prior to distribution to customers. The warehouse occupies approximately 100 square meters and is organized using shelves where products are arranged based on their category, brand, and batch information. The company manages approximately 20 to 30 pharmaceutical products, each of which may exist in multiple brands and batch numbers with different expiry dates. 
+To manage inventory, the company currently uses bin cards and stock cards, which are traditional warehouse documentation tools. Each product batch has its own record card where important information is manually written. The information recorded on these cards typically includes the product name, supplier information, batch number, expiry date, quantity received, quantity issued, and the remaining available stock. When a new shipment of pharmaceutical products is received from a supplier, the store manager records the details on these cards and places the products in their designated shelf locations. 
+Whenever products are sold to customers, the store manager updates the corresponding stock and bin cards to reflect the quantity that has been removed from the warehouse inventory. These updates are performed manually using handwritten entries. In addition to maintaining these physical records, the store manager periodically updates an Excel spreadsheet that summarizes available inventory, including product quantities and expiry dates. This spreadsheet serves as a reference document that helps sales representatives know which products are currently available for sale. 
+Sales operations in the company are mainly handled by four sales representatives. Their primary responsibility is to communicate with customers and generate purchase orders. Most customer communication occurs through phone calls, Telegram messaging, and SMS communication. The sales representatives maintain contact lists of various customers including pharmacies, hospitals, and clinics, and they actively promote available pharmaceutical products through these communication channels. 
+When a customer expresses interest in purchasing a product, the sales representative prepares a proforma invoice that includes details such as product name, quantity, and price. The proforma invoice is typically shared with the customer through messaging platforms. The customer then proceeds to make a payment through bank transfer or direct bank deposit using the bank account details provided by the company. 
+Once the payment is completed, the customer sends proof of transaction, usually in the form of a bank receipt photograph or screenshot, to the sales representative. The sales representative forwards this information to the finance officer, who is responsible for verifying that the payment has been successfully received. After the payment is confirmed, the finance officer generates an official receipt from the company's receipt machine. 
+Following payment verification, the sales representative prepares an attachment document that lists the purchased products along with their quantities and pricing details. This document, together with the printed receipt, is forwarded to the warehouse for order preparation. 
+At this stage, the store manager retrieves the requested products from the warehouse shelves according to the information provided in the attachment document. The ordered products are packaged and prepared for delivery. 
+The delivery driver then receives the delivery package along with the documentation containing the customer's name, address or location, contact number, and product details. In many cases, the driver delivers multiple orders during a single trip. The driver is responsible for transporting the goods to the respective customers and collecting a signature from the customer as proof of successful delivery. 
+Communication between the driver and the company during delivery is usually conducted through phone calls. Once the delivery is completed, the driver confirms the delivery status to the company. 
+Reporting activities within the company are also handled manually. Sales representatives typically prepare weekly sales reports, usually at the end of the week. Meanwhile, the store manager prepares inventory reports summarizing stock levels and product information. These reports are used by the technical manager and the owner to review company performance and make operational decisions. 
+While the current system allows the company to conduct its daily operations, it heavily relies on manual documentation, personal communication, and periodic spreadsheet updates. The absence of an integrated digital system means that important operational data such as inventory levels, sales records, and delivery information are distributed across different documents and communication channels. 
+As a result, accessing accurate and up-to-date information often requires coordination between multiple employees and manual verification of records. For example, sales representatives may need to check with the store manager to confirm product availability before finalizing a sale, and inventory information may need to be verified through physical stock cards or Excel sheets. 
+Although the company has successfully operated using this approach for a relatively small product range, the current system presents limitations in terms of efficiency, accuracy, and scalability as the business grows. These limitations highlight the need for a more integrated and automated system capable of managing the company’s operations in a more efficient and reliable manner. 
+Statement of the Problem 
+Era Med Pharmaceutical Wholesale PLC currently manages its operational activities using a combination of manual documentation methods and basic digital tools such as spreadsheet files. Inventory records are maintained using handwritten stock cards and bin cards, while sales transactions, financial confirmations, and inventory reports are managed 
+
+through Excel spreadsheets and communication platforms such as phone calls and messaging applications. 
+Although this approach has enabled the company to manage its daily operations, the increasing demand for efficient inventory tracking, accurate reporting, and effective communication between departments has exposed several limitations in the current system. The manual nature of the existing system makes it difficult to maintain accurate realtime information about stock availability, product expiry dates, and sales transactions. Furthermore, the lack of a centralized information system results in delays in communication between employees and increases the likelihood of human error. 
+The warehouse currently stores multiple pharmaceutical products with different brands, batch numbers, and expiry dates. Managing this information manually creates challenges in monitoring stock levels and identifying products that are close to expiration. Additionally, sales representatives often depend on manually updated Excel sheets or communication with the store manager to confirm product availability before processing orders. This can lead to delays in customer service and potential loss of sales opportunities. 
+The company also faces difficulties in preparing accurate and timely operational reports because most data is collected manually from different sources. This process is timeconsuming and prone to inconsistencies. Furthermore, because the current system relies heavily on manual records and personal communication, there is an increased risk of data loss, record mismatch, and potential stock discrepancies. In order to clearly illustrate the key problems identified in the existing operational system, the following table summarizes the main issues affecting the organization. 
+Table: Problem Statement Analysis 
+
+ 
+Objective of the Project 
+The main purpose of this project is to develop a computerized system that improves the operational efficiency of Era Med Pharmaceutical Wholesale PLC by replacing the current manual and semi-digital processes with an integrated digital platform. The system is intended to support the company’s core activities such as inventory management, sales processing, payment verification, delivery coordination, and reporting. 
+The proposed system will allow employees to access accurate and real-time information regarding product availability, batch details, sales transactions, and customer orders. By automating these processes, the company will be able to reduce operational errors, improve coordination between departments, and make informed business decisions using reliable data. 
+Furthermore, the system aims to simplify daily operational tasks performed by employees such as tracking inventory movements, processing customer orders, generating invoices, and monitoring delivery activities. Through the implementation of this system, the company will be able to increase productivity, improve service quality to customers, and maintain better control over pharmaceutical inventory and sales activities. 
+General Objective 
+The general objective of this project is to design and develop an integrated Inventory and Sales Management System for Era Med Pharmaceutical Wholesale PLC that automates inventory tracking, sales operations, delivery coordination, and reporting processes in order to improve operational efficiency, accuracy, and decision-making within the organization. 
+Specific Objectives 
+The specific objectives of the project include the following: 
+To develop a digital inventory management system that records and tracks pharmaceutical products, including batch numbers, expiry dates, and stock quantities. 
+To provide real-time visibility of inventory levels so that sales representatives can easily access up-to-date information about product availability. 
+To design a sales management module that enables sales representatives to create sales orders and invoices efficiently. 
+To develop a payment verification mechanism that allows finance staff to confirm customer payments and record transaction details in the system. 
+To implement a delivery management feature that allows the company to track delivery details and confirm successful product delivery to customers. 
+To create a centralized database system that stores all operational information including products, customers, sales transactions, and delivery records. 
+To provide automated report generation for sales performance, inventory levels, and operational activities. 
+To develop a user authentication and role-based access system that allows employees to access only the functionalities relevant to their job responsibilities. 
+To improve communication and coordination between departments by providing a centralized platform where employees can share and access operational information. 
+To design the system with a user-friendly interface that enables employees to perform tasks easily without requiring advanced technical knowledge. 
+Proposed System 
+The proposed system is a computerized Inventory and Sales Management System designed specifically for the operational needs of Era Med Pharmaceutical Wholesale PLC. The system will replace the current manual processes used for managing inventory records, sales transactions, and delivery operations with a centralized digital platform that allows employees to perform their tasks more efficiently. 
+The proposed system will store all operational information in a structured database, allowing authorized users to access and update data in real time. Employees will be able to log into the system using their individual credentials, ensuring secure access to system functionalities based on their assigned roles within the company. 
+The system will include several integrated modules that support the company's daily activities. The inventory management module will allow the store manager to record incoming products, manage product batches, track expiry dates, and update stock levels automatically when sales transactions occur. This module will eliminate the need for manual bin cards and stock cards while improving the accuracy of inventory records. 
+The sales management module will enable sales representatives to view available products, check stock quantities, and create sales orders or invoices directly within the system. This will allow sales staff to provide customers with accurate information about product availability and pricing without needing to consult multiple records or communicate with the warehouse staff for verification. 
+The finance module will allow finance personnel to verify customer payments and record financial transactions related to sales orders. By recording these transactions digitally, the company will maintain accurate financial records that can easily be reviewed and audited. 
+The delivery management module will support the coordination of product deliveries. The delivery driver will be able to receive delivery instructions that include customer details, delivery location, and product information. The system will allow deliveries to be marked as completed once the products have been successfully delivered to the customer. 
+Another important component of the proposed system is the reporting and management dashboard, which will allow the technical manager and the company owner to monitor business performance. The system will generate automated reports that summarize inventory levels, sales performance, and operational activities, enabling management to make informed decisions based on reliable data. 
+Overall, the proposed system aims to provide a centralized platform where all departments within the company can access and manage operational information efficiently. By integrating inventory management, sales processing, financial tracking, and delivery coordination into a single system, the company will be able to streamline its workflow, reduce manual errors, and improve overall productivity. 
+Feasibility Study 
+A feasibility study is conducted to determine whether the proposed system can be successfully developed and implemented within the organization. The feasibility analysis evaluates different aspects of the project including economic feasibility, technical feasibility, and schedule feasibility. These factors help determine whether the project is practical and achievable given the available resources and constraints. 
+Economic Feasibility 
+Economic feasibility evaluates whether the financial benefits of the proposed system outweigh the costs associated with its development and operation. Although the development of the system requires certain resources, the long-term benefits of improved efficiency and reduced operational errors are expected to justify the investment. 
+Developmental Cost 
+The development cost of the system primarily includes the resources required for designing, implementing, and testing the software. Since the system is being developed as part of an academic software engineering project, most of the development work will be performed by the project team using available development tools and technologies. 
+The main development costs may include: 
+Software development tools and programming environments 
+Database management software 
+Testing and debugging tools 
+Time and effort spent in system analysis, design, and implementation 
+Because the project will rely primarily on open-source software technologies and development environments, the financial cost of development is expected to be minimal. 
+Operational Cost 
+Operational costs refer to the expenses required to run and maintain the system after it has been developed and deployed. These costs may include: 
+Computer hardware used to run the system 
+Internet connectivity for accessing the system 
+System maintenance and technical support 
+Data backup and storage 
+Since the company already uses computers and smartphones for daily operations, the additional operational costs for running the system are expected to be relatively low. 
+
+Technical Feasibility 
+Technical feasibility evaluates whether the required technology, hardware, and technical expertise are available to successfully implement the proposed system. 
+Era Med Pharmaceutical Wholesale PLC already uses computers and smartphones in its daily operations, which means that the staff members are familiar with basic digital tools such as spreadsheets and messaging applications. This indicates that employees can adapt to a user-friendly software system with minimal training. 
+The proposed system will be developed using modern software development technologies such as database management systems, web or desktop application frameworks, and programming languages suitable for business applications. These technologies are widely available and well supported, making it feasible to implement the system without requiring specialized infrastructure. 
+Furthermore, the system will be designed with simplicity and usability in mind, ensuring that employees can easily learn how to operate it as part of their daily workflow. 
+Schedule Feasibility 
+Schedule feasibility evaluates whether the project can be completed within the available time frame. The development of the proposed system will follow a structured software engineering process that includes requirements analysis, system design, implementation, testing, and documentation. 
+By dividing the project into manageable phases and allocating sufficient time for each stage of development, the system can be successfully completed within the academic project timeline. 
+A detailed project schedule will be prepared using a Gantt chart, which will outline the tasks involved in each phase of the project along with their respective timelines. This schedule will help ensure that the project progresses according to plan and that all major milestones are achieved within the specified time period. 
+1.7 scope 
+The scope of the project defines the boundaries of the proposed system and clarifies what the project will deliver as well as what it will not include. Establishing a clear scope helps prevent misunderstandings and ensures that the objectives of the project remain realistic and achievable within the available time frame and resources. 
+The proposed Inventory and Sales Management System for Era Med Pharmaceutical Wholesale PLC will focus primarily on digitizing and improving the company’s internal operational processes related to inventory management, sales processing, delivery coordination, and reporting. 
+The system will be designed to support the daily operational activities performed by the company's employees including sales representatives, store manager, finance personnel, delivery personnel, and management staff. 
+Within the defined scope of the project, the system will include the following major functionalities: 
+Recording and managing pharmaceutical product information including product name, brand, batch number, expiry date, supplier information, and quantity. 
+Maintaining a digital inventory database that automatically updates stock quantities whenever products are received or sold. 
+Allowing sales representatives to view real-time product availability and create sales orders or invoices for customers. 
+Recording customer orders and maintaining a history of sales transactions. 
+Allowing the finance department to verify customer payments and record financial transaction information. 
+Supporting delivery operations by providing delivery details such as customer information, order information, and delivery status tracking. 
+Generating automated reports related to inventory levels, sales performance, and operational activities for management review. 
+Implementing a role-based login system where each employee accesses the system using unique credentials and only performs tasks relevant to their job responsibilities. 
+The project will focus specifically on the internal operational system of the company and will not include external customer-facing applications such as online ordering platforms or mobile applications for customers. 
+Additionally, the project will not involve integration with external banking systems or supplier management platforms. Payment verification will still rely on manual confirmation by finance staff but will be recorded within the system. 
+The system will be designed to support the company’s single branch and single warehouse structure. Expansion to multiple branches or warehouses may be considered in future system upgrades but will not be included in the initial version of the system. By clearly defining the scope of the project, the development effort will remain focused on delivering a practical and effective solution that directly addresses the operational challenges currently faced by Era Med Pharmaceutical Wholesale PLC. 
+Methodology 
+The development of the proposed Inventory and Sales Management System will follow a structured software engineering methodology that ensures systematic analysis, design, development, and testing of the system. The methodology provides a clear framework for managing the project activities and ensures that the final system meets the operational requirements of Era Med Pharmaceutical Wholesale PLC. 
+The project will be carried out through several key stages, including requirements analysis, system design, implementation, testing, and evaluation. 
+Requirements Analysis 
+The first stage of the project involves gathering detailed information about the company’s current operational processes and identifying the system requirements. Information will be collected through several techniques including: 
+Interviews with company staff members, including sales representatives, the store manager, finance personnel, and the technical manager. 
+Observation of current operational processes, including inventory management procedures, sales transaction workflows, and delivery coordination. 
+Review of existing documentation, such as stock cards, bin cards, Excel inventory files, sales reports, and financial transaction records. 
+These activities will help identify the functional and non-functional requirements that the new system must satisfy. 
+System Design 
+Once the system requirements have been identified, the next stage will involve designing the structure of the proposed system. The system design phase will include the following tasks: 
+Designing the system architecture, including the major modules of the application such as inventory management, sales management, delivery management, finance management, and reporting modules. 
+Designing the database structure that will store information related to products, batches, customers, sales transactions, payments, and delivery records. 
+Creating system models and diagrams, such as use case diagrams, data flow diagrams, and entity relationship diagrams, to visually represent how the system will function. 
+Designing the user interface layout, ensuring that the system is easy to use for employees with varying levels of computer experience. 
+Implementation 
+The implementation phase involves converting the system design into a working software application. During this stage, the system will be developed using appropriate programming languages, software frameworks, and database management systems. 
+The implementation will involve: 
+Developing the system modules according to the system design. 
+Creating the database structure and implementing data storage mechanisms. 
+Integrating different modules of the system so that they work together as a unified platform. 
+Ensuring that the system follows good software development practices such as modular programming and code documentation. 
+Testing 
+Testing is an essential stage of the development process that ensures the system operates correctly and meets the requirements of the organization. Several types of testing will be conducted during the project, including: 
+Unit testing, where individual system components are tested to ensure they function correctly. 
+Integration testing, where multiple modules are tested together to ensure they interact properly. 
+System testing, where the entire system is evaluated to ensure it performs all required functions correctly. 
+User acceptance testing, where selected employees from the company evaluate the system to determine whether it meets their operational needs. 
+Testing results will be documented and any identified issues will be corrected before final deployment. 
+Project Management Plan 
+The project management plan describes how the development of the system will be organized, monitored, and controlled throughout the project lifecycle. It outlines how time, quality, and communication will be managed to ensure successful completion of the project. 
+Time Management Plan 
+The project will be organized into several phases including requirement analysis, system design, implementation, testing, and documentation. Each phase will be allocated a specific time period within the project schedule. 
+A Gantt chart will be used to illustrate the project timeline and to track the progress of each project activity. The chart will show the start and end dates for each task as well as dependencies between tasks. 
+ 
+ 
+The Gantt chart will provide a visual representation of the project schedule and help ensure that all tasks are completed within the available time frame. 
+Quality Management Plan 
+The quality management plan ensures that the developed system meets the required standards of reliability, usability, and performance. Several measures will be implemented to maintain software quality throughout the project. 
+These measures include: 
+Following proper software engineering design principles during system development. 
+Maintaining clear and well-documented source code. 
+Conducting multiple stages of testing to detect and correct errors. 
+Performing user acceptance testing to ensure the system meets the needs of company employees. 
+Reviewing system performance to ensure the application responds efficiently to user requests. 
+Potential risks related to software quality include software bugs, incomplete system features, and usability issues. These risks will be minimized through continuous testing and feedback from potential system users. 
+Communication Management Plan 
+Effective communication between project participants and stakeholders is essential for the successful completion of the project. The communication management plan defines how information related to the project will be shared among team members and stakeholders. 
+Internal Communication 
+Internal communication will occur between the project developers and company representatives who provide information about operational processes. 
+External Communication and Reporting 
+External communication refers to communication between the project developer and project supervisors or academic advisors. 
+This communication structure ensures that all relevant stakeholders are kept informed about the project’s progress and any issues that arise during development. 
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+APPENDIX 
+Appendix A: Interview Questions 
+This appendix contains the interview questions prepared to collect information from employees of Era Med Pharmaceutical Wholesale PLC. The questions focus on understanding the current inventory management system, identifying operational challenges, and gathering requirements for the proposed computerized system. 
+Appendix B: Questionnaire 
+This appendix includes the questionnaire distributed to staff members to collect data about the existing manual system, stock handling procedures, and communication between departments. 
+Appendix C: Existing System Sample Forms 
+This appendix contains sample documents used in the current system such as: 
+Stock registration forms 
+Sales invoice forms 
+Purchase order forms 
+Inventory tracking sheets 
+These forms help analyze how information is recorded and processed in the existing system. 
+Appendix E: Data Dictionary 
+This appendix describes the database structure of the proposed system including: 
+Table names 
+Field names 
+Data types 
+Description of each attribute. 
+ 
+
+
+
+
+
+
+
+
+REFERENCE 
+Software Engineering: A Practitioner's Approach – Roger S. Pressman. McGraw-Hill Education. 
+Software Engineering – Ian Sommerville. Pearson Education. 
+Database System Concepts – Abraham Silberschatz, Henry F. Korth, and S. Sudarshan. McGraw-Hill. 
+Fundamentals of Database Systems – Ramez Elmasri and Shamkant B. Navathe. Pearson Education. 
+Systems Analysis and Design – Kenneth E. Kendall and Julie E. Kendall. Pearson Education. 
+Modern Systems Analysis and Design – Jeffrey A. Hoffer, Joey F. George, and Joseph S. Valacich. Pearson. 
+World Health Organization. Pharmaceutical Inventory Management Guidelines. 
+World Health Organization. Managing Drug Supply: The Selection, Procurement, Distribution, and Use of Pharmaceuticals. 
+Oracle Corporation. Database Design and Implementation Guidelines. 
+IBM. Warehouse and Inventory Management Systems Overview. 
+Inventory Management Systems and Supply Chain Management Resources – Available from online academic databases. 
+Various academic articles and online resources related to Warehouse Management Systems (WMS), Inventory Management Systems (IMS), and Pharmaceutical Supply Chain Management. 
+ 
+
+--- TABLE 1 ---
+Acronym | Full Meaning | Description
+API | Application Programming Interface | A set of protocols and tools that allows different software systems to communicate and exchange data with each other.
+CRUD | Create, Read, Update, Delete | The four basic operations performed on data in a database system.
+DBMS | Database Management System | Software used to create, manage, and maintain databases for storing system data efficiently.
+ERP | Enterprise Resource Planning | Integrated software used by organizations to manage core business processes such as finance, supply chain, and inventory.
+FEFO | First Expire First Out | An inventory management principle used in pharmaceutical supply chains where products with the earliest expiry date are sold first.
+FIFO | First In First Out | An inventory strategy where the oldest stock is sold or used first before newer stock.
+GUI | Graphical User Interface | The visual interface of the system that allows users to interact with the software through buttons, forms, dashboards, and menus.
+ICT | Information and 
+Communication 
+Technology | Technology used to handle communication and information processing within an organization.
+IMS | Inventory Management System | A computerized system designed to track stock levels, product information, and inventory movement within a warehouse.
+IT | Information Technology | The use of computer systems and software to manage information and organizational operations.
+MIS | Management Information System | A system that provides managers with tools for organizing, evaluating, and efficiently managing departments within an organization.
+RDBMS | Relational Database Management System | A type of DBMS that organizes data into structured tables related to each other through keys and relationships.
+SaaS | Software as a Service | A cloud-based software delivery model where applications are accessed via the internet instead of local installation.
+SMS | Short Message Service | A communication method used by the company to send marketing messages and product advertisements to customers.
+UI | User Interface | The layout and design through which users interact with the system.
+UX | User Experience | The overall experience of users when interacting with the system, focusing on ease of use and efficiency.
+VMS | Vendor Management System | A platform used to manage suppliers and procurement processes.
+WMS | Warehouse Management System | Software used to control warehouse operations such as stock tracking, product storage, and shipment management.
+
+--- TABLE 2 ---
+Element | Description
+The problem of inefficient inventory tracking | The current system relies on handwritten bin cards and stock cards to record inventory transactions. Because these records are updated manually, errors may occur during data entry or updates may be delayed. This makes it difficult to maintain accurate stock levels and may lead to discrepancies between the recorded inventory and the actual products available in the warehouse.
+
+--- TABLE 3 ---
+The problem of limited real-time stock visibility | Sales representatives do not have direct access to real-time inventory information. They depend on periodically updated Excel files or direct communication with the store manager to confirm product availability, which can delay sales operations and affect customer satisfaction.
+The problem of inadequate expiry date monitoring | Pharmaceutical products often have different batch numbers and expiry dates. The manual tracking system makes it difficult to consistently monitor expiration dates, which increases the risk of medicines expiring before they are sold.
+The problem of inefficient interdepartmental communication | Communication between sales representatives, warehouse staff, finance personnel, and delivery staff primarily occurs through phone calls and messaging platforms. This lack of a centralized system creates delays, miscommunication, and difficulty in coordinating operational tasks.
+The problem of manual sales and payment processing | Sales transactions involve several manual steps including preparing proforma invoices, verifying payments through screenshots, and manually recording transaction details. This process is time-consuming and increases the likelihood of errors.
+The problem of time-consuming report generation | Sales and inventory reports are prepared manually by collecting data from different records and spreadsheets. This process requires significant effort and may produce inaccurate or inconsistent reports.
+The problem of data inconsistency and record mismatch | Because multiple records are maintained across stock cards, Excel files, and printed receipts, inconsistencies may occur between different data sources. This makes it difficult for management to rely on the information for decision-making.
+The problem of limited operational transparency | The current system does not provide a centralized platform where management can easily monitor sales performance, stock movements, and delivery activities. This limits the company’s ability to make informed operational decisions.
+The problem of potential inventory loss or fraud | Manual record-keeping and lack of automated transaction logs increase the risk of stock discrepancies, untracked inventory movement, or potential misuse of products.
+
+--- TABLE 4 ---
+Type of 
+Communication | Method / Tool | Frequency | Information | Participants
+Project Meetings | Online or face-toface meeting | Weekly | Project progress, issues, requirement 
+updates | Project developer, 
+company 
+representative
+Requirement Discussions | Interview sessions | During requirement phase | System requirements and workflow clarification | Project developer, company staff
+Project 
+Documentation 
+Sharing | Shared 
+digital storage | When updated | Project documents and system design 
+materials | Project team
+
+--- TABLE 5 ---
+Type of 
+Communication | Method | Frequency | Information | Participants
+Project Progress Reports | Written report | Monthly | Project progress and milestones | Student developer, academic advisor
+Advisor Meetings | Meeting or teleconference | As scheduled | Feedback and guidance on project development | Student developer, advisor

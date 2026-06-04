@@ -16,6 +16,7 @@ import {
   BarChart3,
   Settings,
   Shield,
+  ScrollText,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -37,6 +38,7 @@ const navItems: NavItem[] = [
   { labelKey: 'nav.invoices', to: '/invoices', icon: FileText, permission: 'invoice:view' },
   { labelKey: 'nav.deliveries', to: '/deliveries', icon: Truck, permission: 'delivery:view-assigned' },
   { labelKey: 'nav.reports', to: '/reports', icon: BarChart3, permission: 'report:view' },
+  { labelKey: 'nav.audit', to: '/audit', icon: ScrollText, permission: 'audit:view' },
   { labelKey: 'nav.users', to: '/users', icon: Shield, permission: 'user:manage' },
   { labelKey: 'nav.settings', to: '/settings', icon: Settings, permission: 'settings:manage' },
 ];
@@ -51,11 +53,9 @@ export function Sidebar() {
 
   return (
     <aside className="flex w-64 flex-col border-r bg-sidebar">
-      <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6">
-        <Package className="h-6 w-6 text-sidebar-primary" />
-        <span className="text-lg font-bold text-sidebar-foreground">
-          PharmaIMS
-        </span>
+      <div className="flex h-20 items-center gap-3 border-b border-sidebar-border px-4">
+        <img src="/logo.png" alt="Era Med" className="h-14 object-contain" />
+        <span className="text-lg font-bold text-sidebar-foreground">Era Med</span>
       </div>
       <nav className="flex-1 space-y-1 p-4">
         {visibleItems.map((item) => (

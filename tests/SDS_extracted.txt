@@ -1,0 +1,416 @@
+  
+
+                         ADDIS ABABA UNIVERISTY
+           ADDIS ABABA INSTITUTE OF TECHNOLOGY
+         CENTER OF INFORMATION TECHNOLOGY AND
+SCIENTIFIC COMPUTING DEPARTMENT OF SOFTWARE ENGINEERING
+PHARMACEUTICAL WHOLESALE INVENTORY AND SALSE MANAGEMENT SYSTEM
+SOFTWARE DESIGN SPECIFICATION 
+(SDS)
+
+PREPARED BY (SECTION-1 GROUP – 4) 
+BEREKET KASSAHUN (ID: ATE/7647/16) 
+BAROK FIKADU (ID: ATE/5341/16) 
+SEMEA DEJENE (ID: ATE/3155/16) 
+EYOB HAILEMARIAM (ID: ATE/7299/16) 
+YAPHET YOSEF (ID: ATE/2043/16) 
+TSIGEREDA DEMEKE (ID: ATE/3696/16) 
+Date:30/03/2026 
+Table of Contents
+List of tables ............................................................................................................................................... 2
+List of figures ............................................................................................................................................. 3
+Definitions, Acronyms, Abbreviations...................................................................................................... 4
+1. Introduction ........................................................................................................................................... 5
+ 1.1 Purpose ........................................................................................................................................ 5
+ 1.2 General Overview ....................................................................................................................... 5
+ 1.3 Development Methods and Contingencies ............................................................................... 6
+2. System Architecture .............................................................................................................................. 7
+ 2.1 Subsystem Decomposition .......... ............................................................................................. 7
+ 2.2 Hardware and Software Mapping ..... ...................................................................................... 9
+2.3 Access Control.............................................................................................................................10
+3. Object Model ....................................................................................................................................... 10
+ 3.1 Class Diagram .......................................................................................................................... 10
+ 3.2 Sequence Diagrams .................................................................................................................. 12
+  3.2.1 Create Sales Order ........................................................................................................... 12
+  3.2.2 Payment Verification .......................................................................................................  13
+  3.2.3 Invoice Generation ........................................................................................................... 13
+  3.2.4 Delivery Management ...................................................................................................... 15
+ 3.3 State Chart Diagrams .............................................................................................................. 16
+  3.3.1 Sales Order State Diagram ............................................................................................... 16
+  3.3.2 Payment State Diagram .................................................................................................... 17
+  3.3.3 Delivery State Diagram .. ................................................................................................... 18
+ 4. Detailed Design ...................................................................................................................................19
+
+
+
+
+LIST OF TABLES
+Number | Title | Page
+1 | Definitions and Acronyms | (See Introduction Section)
+2 | User Class Attributes | Section 4.1
+3 | User Class Operations | Section 4.1
+4 | Product Class Attributes | Section 4.2
+5 | Product Class Operations | Section 4.2
+6 | Batch Class Attributes | Section 4.3
+7 | Batch Class Operations | Section 4.3
+8 | Customer Class Attributes | Section 4.4
+9 | Customer Class Operations | Section 4.4
+10 | SalesOrder Class Attributes | Section 4.5
+11 | SalesOrder Class Operations | Section 4.5
+12 | OrderItem Class Attributes | Section 4.6
+13 | OrderItem Class Operations | Section 4.6
+14 | Invoice Class Attributes | Section 4.7
+15 | Invoice Class Operations | Section 4.7
+16 | Payment Class Attributes | Section 4.8
+17 | Payment Class Operations | Section 4.8
+18 | Delivery Class Attributes | Section 4.9
+19 | Delivery Class Operations | Section 4.9
+State Transition Table | Order State Transitions | Section 3.3.1
+
+
+
+
+
+LIST OF FIGURES
+Number | Title | Page
+Figure 1 | System Context Diagram | Section 1.2
+Figure 2 | Subsystem Decomposition Diagram | Section 2.1
+Figure 3 | Deployment Diagram | Section 2.2
+Figure 4 | Class Diagram | Section 3.1
+Figure 5 | Create Sales Order Sequence Diagram | Section 3.2.1
+Figure 6 | Payment Verification Sequence Diagram | Section 3.2.2
+Figure 7 | Invoice Generation Sequence Diagram | Section 3.2.3
+Figure 8 | Delivery Management Sequence Diagram | Section 3.2.4
+Figure 9 | Sales Order State Diagram | Section 3.3.1
+Figure 10 | Payment State Diagram | Section 3.3.2
+Figure 11 | Delivery State Diagram | Section 3.3.3
+
+
+
+
+
+
+
+
+
+
+
+Definitions, Acronyms, Abbreviations
+Terms
+Batch/Lot Number - Identifier for products manufactured together in the same production run
+Expiry Date - Date after which pharmaceutical product must not be sold or used
+Proforma Invoice - Preliminary invoice issued before payment for customer review
+Foreign Key (FK) - Database field that links to another table
+Primary Key (PK) - Unique identifier for each record
+Row Level Security (RLS) - Database security for row-level access control
+Soft Delete - Marking records as inactive instead of physically deleting
+Audit Trail - Log of all changes and actions for compliance
+Acronyms
+API - Application Programming Interface
+ERP - Enterprise Resource Planning
+FIFO - First In First Out
+FEFO - First Expired First Out
+GUI - Graphical User Interface
+HTTP - HyperText Transfer Protocol
+HTTPS - HTTP Secure
+IMS - Inventory Management System
+KPI - Key Performance Indicator
+PDF - Portable Document Format
+REST - Representational State Transfer
+SaaS - Software as a Service
+SRS - Software Requirements Specification
+SDD - Software Design Specification
+TLS - Transport Layer Security
+UAT - User Acceptance Testing
+UUID - Universal Unique Identifier
+Database Terms
+DECIMAL(p,s) - Decimal number with p precision and s scale
+VARCHAR(n) - Variable-length character string of max n chars
+TEXT - Variable-length text field
+TIMESTAMP - Date and time with timezone
+BOOLEAN - True/False value
+DATE - Date only
+
+1. Introduction
+1.1 Purpose
+The purpose of this Software Design Specification document is to translate the business requirements and business processes of the Pharmaceutical Wholesale Inventory and Sales Management System into a technical design that will be used to develop the application. This document provides a detailed technical blueprint that guides the implementation team in building the system according to the specifications defined in the Software Requirements Specification. The design document establishes the system architecture, data structures, behavioral models, and interface specifications necessary for creating a functional software solution.
+This document serves as a critical bridge between the requirements defined in the SRS and the actual implementation of the system. It provides developers with clear guidelines on how to implement each functional requirement, ensuring consistency and completeness in the final product. The technical design presented here is based on the analysis of the Project Proposal and Software Requirements Specification documents prepared earlier in the project lifecycle.
+1.2 General Overview
+The Pharmaceutical Wholesale Inventory and Sales Management System is designed to digitize and streamline the operational processes of Era Med Pharmaceutical Wholesale PLC. The company currently operates using manual and semi-digital methods including paper-based stock cards, bin cards, and Microsoft Excel spreadsheets. The proposed system will replace these manual processes with an integrated web-based platform that provides centralized data management, real-time inventory tracking, automated workflows, and comprehensive reporting capabilities.
+The system architecture follows a three-tier design pattern consisting of the presentation layer, business logic layer, and data layer. This architectural approach ensures separation of concerns, maintainability, and scalability of the application. The presentation layer is implemented as a responsive web application accessible through standard web browsers on desktop computers, tablets, and smartphone devices. The business logic layer utilizes Supabase APIs for handling application operations and enforcing business rules. The data layer is built on PostgreSQL database hosted on the Supabase platform, providing reliable and secure data storage with Row Level Security enforcement.
+The system is designed to support five distinct user roles: Sales Representative, Store Manager, Finance Officer, Delivery Driver, and Technical Manager/Owner. Each role has specific responsibilities and access privileges within the system. The user-friendly interface supports both English and Amharic languages, with toggle functionality allowing users to switch between languages without page refresh. The system maintains a complete audit trail of all critical operations, ensuring compliance with pharmaceutical record-keeping requirements.
+The following diagram illustrates the high-level context of the system showing the interactions between external entities and the system components.
+
+The system interacts with the following external entities: customers who place orders and receive deliveries, sales representatives who manage customer relationships and create orders, store managers who control inventory and manage batches, finance officers who verify payments and generate receipts, delivery drivers who transport products to customers, and management who monitor business performance through reports and dashboards.
+1.3 Development Methods and Contingencies
+The system design follows an object-oriented approach using the Unified Modeling Language for expressing design artifacts. The design methodology incorporates principles from structured analysis and object-oriented design, ensuring a systematic approach to translating business requirements into technical specifications. The primary modeling techniques used include class diagrams for representing static structure, sequence diagrams for modeling behavioral flows, and state diagrams for capturing object lifecycle states.
+The development will utilize modern web technologies including React or vanilla HTML/CSS/JavaScript for the frontend presentation layer, Supabase as the backend-as-a-service platform providing PostgreSQL database, authentication, and API services, and Vercel or Netlify for web hosting. The choice of these technologies aligns with the project constraints of minimal budget and free-tier service availability while ensuring professional-quality implementation.
+The design considers several contingencies that might arise during implementation. The primary contingency involves handling potential limitations of the Supabase free tier, including the 500MB database storage limit and 10GB storage allocation. If data volumes exceed these limits, optimization strategies such as data archiving and compression will be implemented. Additionally, the design allows for future migration to alternative database platforms if required.
+Another contingency addressed is the potential need for offline capability in areas with limited internet connectivity. While continuous connectivity is required for the current design, the architecture supports future enhancement with local data caching and synchronization capabilities. The system also considers the possibility of integrating with external accounting software in future phases, with appropriate database design to accommodate such integrations.
+The development approach follows iterative sprints over the eight-week timeline, with each sprint focusing on specific functional modules. The design document provides sufficient detail for the initial implementation phases while maintaining flexibility for refinement based on feedback from testing and user acceptance evaluation.
+2. System Architecture
+2.1 Subsystem Decomposition
+The system is decomposed into three major layers representing distinct responsibilities and functionalities. This decomposition follows industry-standard three-tier architecture patterns and ensures clean separation of concerns throughout the application. Each layer communicates with adjacent layers through well-defined interfaces, enabling independent evolution and maintenance of each component.
+The Presentation Layer handles all user interface components and interactions. This layer is responsible for rendering the graphical user interface, processing user inputs, and communicating with the business logic layer through API calls. The presentation layer includes the login interface, role-specific dashboards, forms for data entry, display tables for information viewing, report visualizations, and the language toggle functionality. This layer is implemented as a responsive web application that adapts to different screen sizes and devices.
+The Business Logic Layer contains the core application functionality and rules. This layer processes incoming requests from the presentation layer, applies business rules and validations, coordinates operations between different modules, and manages the interaction with the data layer. Key business components include user authentication and authorization services, inventory management with FIFO deduction logic, sales order processing workflow, payment verification procedures, delivery coordination, and report generation engines.
+The Data Layer provides persistent storage and retrieval of all system data. This layer includes the PostgreSQL database, database schemas and relationships, Row Level Security policies for access control, and data backup mechanisms. The data layer ensures data integrity through constraints and relationships, maintains audit logs for all critical operations, and provides efficient query mechanisms through proper indexing.
+The following diagram shows the three-tier architecture decomposition of the system.
+
+
+User Management Module: Handles user authentication, session management, password reset functionality, and role-based access control. This module ensures secure access to the system and enforces permission boundaries for each user role.
+Product Management Module: Manages pharmaceutical product information including product names, brands, categories, pricing, and supplier details. This module supports CRUD operations and provides search and filter capabilities.
+Batch Management Module: Tracks individual batches of products with their manufacturing dates, expiry dates, quantities, and status. This module is critical for pharmaceutical compliance and inventory control.
+Inventory Management Module: Maintains real-time stock levels, calculates available quantities, and implements the FIFO deduction method for order fulfillment. This module provides alerts for low stock and expiring products.
+Sales Order Management Module: Handles the complete order lifecycle from creation through fulfillment. This module includes order validation, status tracking, and integration with inventory and customer modules.
+Invoice Generation Module: Creates official invoice documents in PDF format, maintains sequential numbering, and integrates with the order and inventory modules.
+Payment Verification Module: Manages payment proof uploads, verification workflows, and receipt generation.
+Delivery Management Module: Coordinates delivery assignments, tracks delivery status, and maintains delivery history.
+Reporting Module: Generates dashboards, KPI visualizations, and exportable reports for management decision-making.
+
+
+
+
+2.2 Hardware and Software Mapping
+The system deployment follows a cloud-based hosting model utilizing platform-as-a-service components. This deployment approach minimizes infrastructure requirements and provides scalability while maintaining accessibility from any location with internet connectivity.
+Client machines include desktop computers, laptop computers, tablet devices, and smartphone devices used by employees to access the system through web browsers. These clients require standard web browsers including Google Chrome, Mozilla Firefox, Apple Safari, or Microsoft Edge with JavaScript enabled and cookies permitted.
+The web server is hosted on Vercel or Netlify platforms, providing global content delivery and automatic scaling. These platforms offer free tier services suitable for the project scope and provide continuous deployment capabilities from the version control repository.
+The database server is hosted on Supabase cloud platform, providing PostgreSQL database services with automatic backups, Row Level Security enforcement, and real-time capabilities. Supabase provides authentication services, storage services for files, and API generation from database schemas
+The following diagram illustrates the deployment architecture showing the distribution of components across hardware and software infrastructure.
+
+Client devices connect to the web application through HTTPS protocol, with all communications encrypted using TLS 1.2 or higher. The web application server processes requests and communicates with the Supabase backend through RESTful API calls. The Supabase platform manages the PostgreSQL database and provides authentication services.
+The deployment supports approximately ten concurrent users as specified in the non-functional requirements. The system is designed for the single branch operation of Era Med Pharmaceutical Wholesale PLC and does not include multi-branch support in the initial version.
+
+		2.3 Access Control and Security
+The system implements Role-Based Access Control (RBAC) to ensure secure access to all functionalities. The access control is implemented through two main mechanisms:
+User Roles: The system supports five distinct user roles, each with specific permissions and access levels:
+Sales Representative: Can create orders, view products and customers, and access limited reporting.
+Store Manager: Can manage inventory, batches, and products. Has full access to inventory operations.
+Finance Officer: Can verify payments, generate receipts, and access financial records.
+Delivery Driver: Can view assigned deliveries and update delivery status.
+Technical Manager/Owner: Has full system access including user management, reporting, and system configuration.
+User Management Module: Handles user authentication, session management, password reset functionality, and role-based access control. This module ensures secure access to the system and enforces permission boundaries for each user role.
+Row Level Security (RLS): Database-level security implemented through Supabase RLS policies to enforce data access restrictions at the row level. This ensures that users can only access data relevant to their role.
+The system ensures secure access by enforcing permission boundaries for each user role. All authentication uses bcrypt password hashing with JWT tokens for session management.
+3: Object Model
+3.1 Class Diagram
+The class diagram represents the static structure of the system by showing all identified classes, their attributes, operations, and the relationships among classes. This diagram provides a blueprint for database schema design and helps developers understand the data organization of the application.
+
+     Class Description and Relationships
+User Class: Represents system users with authentication and authorization attributes. The User class has a one-to-many relationship with SalesOrder, where one user (as sales representative) can create multiple orders. The User class also has a one-to-many relationship with Delivery for drivers.
+Product Class: Represents pharmaceutical products available for sale. The Product class has a one-to-many relationship with Batch, as each product can have multiple batches with different expiry dates and quantities. The Product class has a one-to-many relationship with OrderItem through sales orders.
+Batch Class: Represents individual batches of products with tracking information. The Batch class has a many-to-one relationship with Product. The Batch class has a one-to-many relationship with OrderItem for line items.
+Customer Class: Represents customers who purchase pharmaceutical products. The Customer class has a one-to-many relationship with SalesOrder, as a customer can have multiple orders.
+SalesOrder Class: Represents customer orders with header information. The SalesOrder class has a many-to-one relationship with Customer. The SalesOrder class has a one-to-many relationship with OrderItem for line items. The SalesOrder class has one-to-one relationships with Invoice and Delivery.
+OrderItem Class: Represents individual line items in an order. The OrderItem class has many-to-one relationships with SalesOrder, Product, and Batch.
+Invoice Class: Represents official invoices generated for verified orders. The Invoice class has a many-to-one relationship with SalesOrder.
+Payment Class: Represents payment records for orders. The Payment class has a many-to-one relationship with SalesOrder.
+Delivery Class: Represents delivery information for orders. The Delivery class has a many-to-one relationship with SalesOrder. The Delivery class has a many-to-one relationship with User (as driver).
+The relationships include the following multiplicities:
+User to SalesOrder: One sales representative can create multiple orders (1 to many)
+User to Delivery: One driver can handle multiple deliveries (1 to many)
+Product to Batch: One product can have multiple batches (1 to many)
+Product to OrderItem: One product can appear in multiple order items (1 to many)
+Batch to OrderItem: One batch can be referenced in multiple order items (1 to many)
+Customer to SalesOrder: One customer can place multiple orders (1 to many)
+SalesOrder to OrderItem: One order can have multiple line items (1 to many)
+SalesOrder to Invoice: Each order generates one invoice (1 to 1)
+SalesOrder to Payment: Each order has one payment (1 to 1)
+SalesOrder to Delivery: Each order has one delivery (1 to 1)
+Inheritance relationships are not required for the current system design as all order types follow the same process. However, the design allows for future extension with specialized order types if needed.
+3.2 Sequence Diagrams
+Sequence diagrams model the dynamic behavior of the system by showing how objects interact in a particular use case or scenario. These diagrams illustrate the order of messages exchanged between objects and capture the flow of control during system operations.
+3.2.1 Create Sales Order Sequence Diagram
+This sequence diagram shows the workflow for creating a new sales order in the system. The process begins when a sales representative logs into the system and ends when the order is saved as a draft ready for proforma generation.
+
+The sequence diagram shows the following steps:
+
+Sales Representative accesses the New Order form through the dashboard
+System displays the customer selection interface
+Sales Representative selects a customer from the list
+System validates the customer and retrieves customer details including credit limit
+Sales Representative adds products to the order
+For each product, System validates stock availability
+System displays available quantities and batch information
+Sales Representative selects quantities for each product
+System calculates line totals and order subtotal
+Sales Representative adds delivery address and special instructions
+Sales Representative submits the order
+System validates all required fields
+System saves the order as Draft status
+System displays success confirmation
+Database commits the transaction
+
+		3.2.2 Payment Verification Sequence Diagram
+This sequence diagram shows the workflow for verifying a customer payment. The finance officer uploads payment proof and verifies the payment after bank confirmation.
+
+The sequence diagram shows the following steps:
+Finance Officer navigates to Pending Payments list
+System displays orders awaiting payment verification
+Finance Officer selects an order to verify
+System displays payment details and uploaded proof
+Finance Officer reviews the payment proof
+Finance Officer clicks Verify Payment
+System validates the payment amount matches order total
+Finance Officer confirms verification
+System updates Payment status to Verified
+System generates receipt number
+System sends notification to sales representative
+Database commits the transaction
+Finance Officer completes the verification
+		3.2.3 Invoice Generation Sequence Diagram
+This sequence diagram shows the process of generating an official invoice when payment is verified. The system automatically triggers invoice generation after payment verification and deducts stock using FIFO method.
+
+The sequence diagram shows the following steps:
+System detects verified payment on an order
+System triggers invoice generation process
+System retrieves order items with product and batch information
+System sorts batches by manufacturing date for FIFO selection
+System selects oldest batches first (FIFO)
+System creates Invoice record with sequential number
+System generates Invoice PDF document
+System updates order status to Invoice Generated
+For each order item, System deducts from selected batch quantity
+System updates batch remaining quantities
+System records stock movement in audit log
+Database commits all changes atomically
+System notifies Technical Manager of successful generation
+		3.2.4 Delivery Management Sequence Diagram
+This sequence diagram shows the workflow for managing deliveries from assignment through completion. The sequence involves Technical Manager assigning deliveries and Delivery Driver updating status.
+
+The sequence diagram shows the following steps:
+
+Technical Manager navigates to Delivery Assignment
+System displays orders ready for delivery (verified payments)
+Technical Manager selects an order for assignment
+Technical Manager selects a delivery driver
+Technical Manager adds delivery instructions
+Technical Manager assigns the deliver
+System creates Delivery record
+System notifies assigned driver
+Delivery Driver logs in to system
+System displays assigned deliveries for driver
+Delivery Driver selects a delivery
+Delivery Driver contacts customer and delivers products
+Customer signs delivery confirmation
+Delivery Driver updates delivery status
+System records delivery time and recipient name
+System updates order status to Delivered
+Database commits the changes
+Delivery Driver completes delivery cycle
+
+3.3 State Chart Diagrams
+State chart diagrams model the behavior of objects that have significant state changes throughout their lifecycle. These diagrams show the possible states an object can be in, the events that trigger state transitions, and the actions performed during transitions. Based on the lecture material from UML State Diagrams (Fowler, UML Distilled), state diagrams are developed for objects with interesting and complex state changes.
+3.3.1 Sales Order State Diagram
+The Sales Order object has a well-defined lifecycle with multiple states representing different stages of the order fulfillment process. This state diagram captures the complete order lifecycle from creation through delivery or cancellation.
+
+Order States and Transitions
+Draft State: The initial state when a sales representative creates a new order. In this state, the order is editable and contains customer and product selections. From Draft state, the order can transition to Proforma Generated upon proforma creation, or to Cancelled if the order is rejected.
+Proforma Generated State: The state after a proforma invoice is generated for customer review. In this state, the order awaits customer payment. From Proforma Generated state, the order can transition to Verified upon payment verification, or back to Cancelled if the order is cancelled.
+Verified State: The state after payment verification by the finance officer. In this state, the order is ready for invoice generation and delivery preparation. From Verified state, the order can transition to Invoice Generated when the invoice is created.
+Invoice Generated State: The state after official invoice generation. In this state, stock has been deducted from inventory and the order is committed. From Invoice Generated state, the order can transition to Delivered upon successful delivery, or to Cancelled if delivery fails and order is cancelled.
+Delivered State: The final successful state when products are delivered to the customer. This is a terminal state indicating the order is complete.
+Cancelled State: The terminal state when an order is cancelled at any stage before delivery. This state preserves the order history for audit purposes though no further processing occurs.
+State Transition Table
+Current State Event Next State Action
+Draft Generate Proforma Proforma Generated Create proforma PDF
+Proforma Generated Verify Payment Verified Update payment status
+Proforma Generated Cancel Order Cancelled Record cancellation reason
+Verified Generate Invoice Invoice Generated Deduct stock (FIFO)
+Invoice Generated Mark Delivered Delivered Update delivery status
+Invoice Generated Cancel Order Cancelled Restore stock quantities
+		3.3.2 Payment State Diagram
+The Payment object tracks the status of customer payments from upload through verification. This state diagram captures the verification workflow.
+
+Payment States and Transitions
+Pending State: Initial state when an order is created but no payment has been made. In this state, the system awaits customer payment. From Pending state, the payment can transition to Uploaded when proof is uploaded, or remain Pending until payment is received.
+Uploaded State: The state when the customer has uploaded payment proof. The finance officer reviews the proof and verifies or rejects. From Uploaded state, the payment can transition to Verified upon successful verification, or to Rejected if the payment is invalid.
+Verified State: The state after finance officer confirms payment. This triggers invoice generation. From Verified state, the payment transitions automatically to Completed.
+Rejected State: The state when payment is rejected due to invalid proof or insufficient amount. A new payment can be uploaded to retry.
+Completed State: The terminal state when payment is confirmed and invoice is generated. No further transitions occur.
+3.3.3 Delivery State Diagram
+The Delivery object tracks the status of product delivery to customers. This state diagram models the delivery workflow from assignment through completion.
+
+Delivery States and Transitions
+Assigned State: Initial state when delivery is assigned to a driver. In this state, the delivery awaits pickup and dispatch. From Assigned state, the delivery can transition to In Transit when the driver begins delivery, or to Cancelled if delivery is cancelled before dispatch.
+In Transit State: The state when the driver is en route to deliver products. In this state, the delivery is actively being made. From In Transit state, the delivery can transition to Delivered upon successful delivery, or to Failed if delivery cannot be completed.
+Delivered State: The terminal state when products are successfully delivered to the customer. The customer has signed for receipt.
+Failed State: The state when delivery could not be completed. This may occur due to customer unavailability or wrong address. From Failed state, the delivery can transition to Rescheduled when a new delivery is arranged, or to Cancelled if the delivery is abandoned.
+Rescheduled State: The state when a failed delivery is rescheduled for another attempt. This creates a new delivery cycle from Assigned state. Multiple rescheduling events can occur.
+Cancelled State: The terminal state when delivery is cancelled. This may occur if the order is cancelled or after multiple failed delivery attempts.
+.4: Detailed Design
+4.1 User Class
+Operations: authenticate(), create_user(), update_user(), deactivate_user()
+4.2 Product Class
+Operations: create_product(), update_product(), deactivate_product(), search_products()
+4.3 Batch Class
+Operations: create_batch(), quarantine_batch(), get_batches_by_product()
+4.4 Customer Class
+Operations: create_customer(), update_customer(), search_customers()
+4.5 SalesOrder Class
+Operations: create_order(), add_order_item(), generate_proforma()
+4.6 OrderItem Class
+Operations: create_order_item(), update_quantity()
+4.7 Invoice Class
+Operations: generate_invoice(), get_invoice_by_id()
+4.8 Payment Class
+Operations: upload_proof(), verify_payment(), reject_payment()
+
+
+
+--- TABLE 1 ---
+Attribute Name | Data Type | Constraints | Description
+user_id | UUID | PK | ID
+email | VARCHAR(255) | Unique | Login
+password_hash | VARCHAR(255) | Not Null | Password
+full_name | VARCHAR(255) | Not Null | Name
+role | VARCHAR(50) | Not Null | Role
+status | VARCHAR(20) | Default | Status
+
+--- TABLE 2 ---
+Attribute Name | Data Type | Constraints | Description
+product_id | VARCHAR(20) | PK | ID
+generic_name | VARCHAR(255) | Not Null | Name
+category | VARCHAR(100) | Not Null | Category
+selling_price | DECIMAL(10,2) | Not Null | Price
+
+--- TABLE 3 ---
+Attribute Name | Data Type | Constraints | Description
+batch_id | UUID | PK | ID
+product_id | VARCHAR(20) | FK | Product
+batch_number | VARCHAR(100) | Not Null | Batch#
+expiry_date | DATE | Not Null | Expiry
+
+--- TABLE 4 ---
+Attribute Name | Data Type | Constraints | Description
+customer_id | UUID | PK | ID
+customer_name | VARCHAR(255) | Not Null | Name
+phone_number | VARCHAR(20) | Not Null | Phone
+credit_limit | DECIMAL(10,2) | Default | Credit
+
+--- TABLE 5 ---
+Attribute Name | Data Type | Constraints | Description
+order_id | UUID | PK | ID
+order_number | VARCHAR(30) | Unique | Number
+customer_id | UUID | FK | Customer
+total_amount | DECIMAL(12,2) | Calc | Total
+status | VARCHAR(30) | Not Null | Status
+
+--- TABLE 6 ---
+Attribute Name | Data Type | Constraints | Description
+order_item_id | UUID | PK | ID
+product_id | UUID | FK | Product
+quantity | INTEGER | Not Null | Qty
+
+--- TABLE 7 ---
+Attribute Name | Data Type | Constraints | Description
+invoice_id | UUID | PK | ID
+invoice_number | VARCHAR(30) | Unique | Number
+order_id | UUID | FK | Order
+total_amount | DECIMAL(12,2) | Not Null | Total
+
+--- TABLE 8 ---
+Attribute Name | Data Type | Constraints | Description
+payment_id | UUID | PK | ID
+order_id | UUID | FK | Order
+amount | DECIMAL(12,2) | Not Null | Amount
+status | VARCHAR(20) | Not Null | Status

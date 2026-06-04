@@ -34,6 +34,7 @@ const am = {
     reports: 'ሪፖርቶች',
     users: 'ተጠቃሚዎች',
     settings: 'ቅንብሮች',
+    audit: 'የክትትል ምዝግብ',
   },
   inventory: {
     lowStock: 'ዝቅተኛ ክምችት',

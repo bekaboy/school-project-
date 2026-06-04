@@ -34,6 +34,7 @@ const en = {
     reports: 'Reports',
     users: 'Users',
     settings: 'Settings',
+    audit: 'Audit Log',
   },
   inventory: {
     lowStock: 'Low Stock',

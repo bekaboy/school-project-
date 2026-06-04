@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       audit_logs: {
@@ -310,6 +335,7 @@ export type Database = {
           id: string
           order_id: string
           proof_url: string | null
+          receipt_number: string | null
           rejection_reason: string | null
           status: string
           updated_at: string | null
@@ -322,6 +348,7 @@ export type Database = {
           id?: string
           order_id: string
           proof_url?: string | null
+          receipt_number?: string | null
           rejection_reason?: string | null
           status?: string
           updated_at?: string | null
@@ -334,6 +361,7 @@ export type Database = {
           id?: string
           order_id?: string
           proof_url?: string | null
+          receipt_number?: string | null
           rejection_reason?: string | null
           status?: string
           updated_at?: string | null
@@ -659,6 +687,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
