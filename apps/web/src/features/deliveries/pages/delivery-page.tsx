@@ -208,7 +208,6 @@ export function DeliveryPage() {
             status: 'Delivered',
             delivered_at: new Date().toISOString(),
             recipient_name: recipientName,
-            delivery_notes: notes || null,
           } as never);
           setConfirmOpen(false);
           setConfirmDeliveryId(null);

@@ -40,10 +40,19 @@ export function DashboardPage() {
     [orders],
   );
 
-  const lowStockCount = useMemo(
-    () => (products ?? []).filter((p: any) => p.active_status !== false && p.reorder_quantity > 0).length,
-    [products],
-  );
+  const lowStockCount = useMemo(() => {
+    if (!products || !batches) return 0;
+    const stockMap: Record<string, number> = {};
+    for (const b of batches as any[]) {
+      if (b.batch_status === 'Active') {
+        const pid = b.product_id as string;
+        stockMap[pid] = (stockMap[pid] ?? 0) + (b.quantity_remaining ?? 0);
+      }
+    }
+    return (products as any[]).filter(
+      (p: any) => p.active_status !== false && (stockMap[p.id] ?? 0) < (p.reorder_quantity ?? 10),
+    ).length;
+  }, [products, batches]);
 
   const expiringCount = useMemo(
     () => (batches ?? []).filter((b: any) => {

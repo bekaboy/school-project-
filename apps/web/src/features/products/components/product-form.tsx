@@ -130,15 +130,9 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
 
     setUploading(true);
 
-    let imageUrl = form.imageUrl;
-    if (imageFile) {
-      const tempId = `temp_${Date.now()}`;
-      imageUrl = await uploadProductImage(imageFile, isEditing && product ? product.id : tempId);
-    }
-
     const values = {
       ...form,
-      imageUrl,
+      imageUrl: form.imageUrl,
       costPrice: Number(form.costPrice),
       sellingPrice: Number(form.sellingPrice),
       taxRate: Number(form.taxRate),
@@ -148,12 +142,19 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
     const dbData = mapToDb(values) as Record<string, unknown>;
 
     if (isEditing && product) {
+      if (imageFile) {
+        dbData.image_url = await uploadProductImage(imageFile, product.id);
+      }
       await updateProduct.mutateAsync({ id: product.id, ...dbData });
     } else {
       const year = new Date().getFullYear();
       const seq = String(Math.floor(Math.random() * 90000) + 10000);
       const productId = `PROD-${year}-${seq}`;
-      await createProduct.mutateAsync({ ...dbData, product_id: productId } as never);
+      const created = await createProduct.mutateAsync({ ...dbData, product_id: productId } as never);
+      if (imageFile && created) {
+        const url = await uploadProductImage(imageFile, created.id);
+        await updateProduct.mutateAsync({ id: created.id, image_url: url });
+      }
     }
 
     setUploading(false);

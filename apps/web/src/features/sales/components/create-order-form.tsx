@@ -52,7 +52,16 @@ export function CreateOrderForm() {
   const createItems = useCreateOrderItems();
   const user = useAuthStore((s) => s.user);
 
-  const [state, send] = useMachine(salesOrderMachine);
+  const MACHINE_TO_DB_STATUS: Record<string, string> = {
+  Draft: 'Draft',
+  ProformaGenerated: 'Proforma Generated',
+  Verified: 'Verified',
+  InvoiceGenerated: 'Invoice Generated',
+  Delivered: 'Delivered',
+  Cancelled: 'Cancelled',
+};
+
+const [state, send] = useMachine(salesOrderMachine);
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormData>({
     customerId: '',
@@ -197,7 +206,7 @@ export function CreateOrderForm() {
       order_id: orderId,
       customer_id: form.customerId,
       sales_rep_id: user.id,
-      status: state.value,
+      status: MACHINE_TO_DB_STATUS[state.value as string] ?? (state.value as string),
       subtotal,
       tax: taxTotal,
       total: grandTotal,
