@@ -16,8 +16,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useCreateUser, useUpdateUser } from '@/lib/supabase/queries';
+import { useCreateUserWithAuth, useUpdateUser } from '@/lib/supabase/queries';
 import { supabase } from '@/lib/supabase/client';
+import { generateTempPassword } from '@/lib/supabase/auth';
+import { useToast } from '@/hooks/use-toast';
 import type { Tables } from '@pharma-ims/shared';
 import type { UserRole } from '@pharma-ims/shared';
 
@@ -55,23 +57,35 @@ function userToForm(u: Tables<'users'>): FormState {
 }
 
 export function UserForm({ open, onOpenChange, user, onSave }: UserFormProps) {
-  const createUser = useCreateUser();
+  const createUser = useCreateUserWithAuth();
   const updateUser = useUpdateUser();
+  const { toast } = useToast();
   const isEditing = !!user;
   const [form, setForm] = useState<FormState>({
     fullName: '', email: '', phone: '', role: '', isActive: 'true',
   });
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [resetSent, setResetSent] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState('');
+  const [submitError, setSubmitError] = useState('');
   const initializing = useRef(true);
 
   useEffect(() => {
     if (open) {
       setForm(user ? userToForm(user) : { fullName: '', email: '', phone: '', role: '', isActive: 'true' });
       setErrors({});
+      setSubmitError('');
+      setGeneratedPassword('');
       initializing.current = false;
     }
   }, [open, user]);
+
+  useEffect(() => {
+    if (!open) {
+      setGeneratedPassword('');
+      setSubmitError('');
+    }
+  }, [open]);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -89,30 +103,47 @@ export function UserForm({ open, onOpenChange, user, onSave }: UserFormProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setSubmitError('');
     if (!validate()) return;
 
     if (isEditing && user) {
-      await updateUser.mutateAsync({
-        id: user.id,
-        full_name: form.fullName,
-        email: form.email,
-        phone: form.phone || null,
-        role: form.role,
-        is_active: form.isActive === 'true',
-      } as never);
-      onSave?.('USER_EDIT', user.id, form.fullName);
+      try {
+        await updateUser.mutateAsync({
+          id: user.id,
+          full_name: form.fullName,
+          email: form.email,
+          phone: form.phone || null,
+          role: form.role,
+          is_active: form.isActive === 'true',
+        });
+        onSave?.('USER_EDIT', user.id, form.fullName);
+        toast({ title: 'User updated', description: `${form.fullName} has been updated.` });
+        onOpenChange(false);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Failed to update user';
+        setSubmitError(msg);
+        toast({ title: 'Error', description: msg, variant: 'destructive' });
+      }
     } else {
-      await createUser.mutateAsync({
-        full_name: form.fullName,
-        email: form.email,
-        phone: form.phone || null,
-        role: form.role,
-        is_active: form.isActive === 'true',
-      } as never);
-      onSave?.('USER_CREATE', '', form.fullName);
+      const tempPassword = generateTempPassword();
+      try {
+        await createUser.mutateAsync({
+          email: form.email,
+          password: tempPassword,
+          fullName: form.fullName,
+          phone: form.phone || null,
+          role: form.role,
+          isActive: form.isActive === 'true',
+        });
+        setGeneratedPassword(tempPassword);
+        onSave?.('USER_CREATE', '', form.fullName);
+        toast({ title: 'User created', description: `${form.fullName} has been created with a temporary password.` });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Failed to create user';
+        setSubmitError(msg);
+        toast({ title: 'Error', description: msg, variant: 'destructive' });
+      }
     }
-
-    onOpenChange(false);
   }
 
   async function handleSendPasswordReset() {
@@ -187,12 +218,54 @@ export function UserForm({ open, onOpenChange, user, onSave }: UserFormProps) {
             </div>
           )}
 
-          <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" disabled={createUser.isPending || updateUser.isPending}>
-              {isEditing ? 'Save' : 'Add User'}
-            </Button>
-          </div>
+          {generatedPassword && (
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4 space-y-2">
+              <p className="text-sm font-semibold text-green-800">User Created Successfully</p>
+              <p className="text-sm text-green-700">
+                Temporary password for <strong>{form.email}</strong>:
+              </p>
+              <div className="flex items-center gap-2">
+                <code className="rounded bg-green-100 px-3 py-1.5 text-sm font-mono font-bold text-green-900 select-all">
+                  {generatedPassword}
+                </code>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(generatedPassword);
+                    toast({ title: 'Copied', description: 'Password copied to clipboard.' });
+                  }}
+                >
+                  Copy
+                </Button>
+              </div>
+              <p className="text-xs text-green-600">
+                Share this password with the user. They will be asked to change it on first login.
+              </p>
+            </div>
+          )}
+
+          {submitError && (
+            <p className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2">{submitError}</p>
+          )}
+
+          {!generatedPassword && (
+            <div className="flex justify-end gap-3">
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+              <Button type="submit" disabled={createUser.isPending || updateUser.isPending}>
+                {createUser.isPending ? 'Creating...' : isEditing ? 'Save' : 'Add User'}
+              </Button>
+            </div>
+          )}
+
+          {generatedPassword && (
+            <div className="flex justify-end gap-3">
+              <Button type="button" variant="outline" onClick={() => { setGeneratedPassword(''); onOpenChange(false); }}>
+                Close
+              </Button>
+            </div>
+          )}
         </form>
       </DialogContent>
     </Dialog>

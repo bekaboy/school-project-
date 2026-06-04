@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../client';
+import { signUp } from '../auth';
 import type { Tables, TablesInsert, TablesUpdate } from '@pharma-ims/shared';
 
 const queryKey = ['users'] as const;
@@ -32,6 +33,43 @@ export function useCreateUser() {
   return useMutation({
     mutationFn: async (user: TablesInsert<'users'>) => {
       const { data, error } = await supabase.from('users').insert(user).select().single();
+      if (error) throw error;
+      return data as Tables<'users'>;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey }),
+  });
+}
+
+export function useCreateUserWithAuth() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: {
+      email: string;
+      password: string;
+      fullName: string;
+      phone: string | null;
+      role: string;
+      isActive: boolean;
+    }) => {
+      const { email, password, fullName, phone, role, isActive } = params;
+
+      const { data: authData, error: authError } = await signUp(email, password, role, fullName);
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('Auth user creation returned no user');
+
+      const authId = authData.user.id;
+      const { data, error } = await supabase
+        .from('users')
+        .insert({
+          id: authId,
+          email,
+          full_name: fullName,
+          phone,
+          role,
+          is_active: isActive,
+        })
+        .select()
+        .single();
       if (error) throw error;
       return data as Tables<'users'>;
     },
