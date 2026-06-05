@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { formatCurrency, formatPhone } from '@/lib/utils/formatters';
+import { formatPhone } from '@/lib/utils/formatters';
 import { Pencil, Trash2, Search, FileText } from 'lucide-react';
 
 interface CustomerTableProps {
@@ -56,7 +56,7 @@ export function CustomerTable({ customers, onEdit, onDelete, onViewOrders }: Cus
               <TableHead>Contact Person</TableHead>
               <TableHead>Phone</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Credit Limit</TableHead>
+              <TableHead>Address</TableHead>
               <TableHead>Tax ID</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="w-32">Actions</TableHead>
@@ -80,9 +80,7 @@ export function CustomerTable({ customers, onEdit, onDelete, onViewOrders }: Cus
                     {formatPhone(customer.phone)}
                   </TableCell>
                   <TableCell>{customer.email ?? '—'}</TableCell>
-                  <TableCell className="font-mono text-sm">
-                    {customer.credit_limit ? formatCurrency(customer.credit_limit) : '—'}
-                  </TableCell>
+                  <TableCell className="max-w-48 truncate text-sm">{customer.address ?? '—'}</TableCell>
                   <TableCell className="font-mono text-xs">{customer.tax_id ?? '—'}</TableCell>
                   <TableCell>
                     <Badge variant="default">Active</Badge>

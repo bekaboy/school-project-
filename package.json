@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "dotenv": "^17.4.2",
+    "netlify-cli": "^26.1.0",
     "prettier": "^3.5.0",
     "tsx": "^4.22.4",
     "turbo": "^2.5.0",

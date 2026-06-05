@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { CustomerCombobox } from '@/features/customers/components/customer-combobox';
 import {
   Table,
   TableBody,
@@ -325,18 +326,12 @@ const [state, send] = useMachine(salesOrderMachine);
       {step === 0 && (
         <div className="space-y-4 max-w-lg">
           <Field label="Customer *" error={errors.customerId}>
-            <Select value={form.customerId} onValueChange={updateCustomer}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a customer..." />
-              </SelectTrigger>
-              <SelectContent>
-                {customers?.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name} — {c.phone}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <CustomerCombobox
+              customers={customers}
+              value={form.customerId}
+              onValueChange={updateCustomer}
+              placeholder="Search customer by name, phone, or email..."
+            />
           </Field>
 
           {selectedCustomer && (
