@@ -27,6 +27,18 @@ export async function uploadProductImage(file: File, productId: string): Promise
   return urlData.publicUrl;
 }
 
+export async function uploadInvoicePdf(blob: Blob, invoiceNumber: string): Promise<string> {
+  const filePath = `${invoiceNumber}/${Date.now()}.pdf`;
+  const { data, error } = await supabase.storage
+    .from('invoices')
+    .upload(filePath, blob, { contentType: 'application/pdf' });
+
+  if (error) throw error;
+
+  const { data: urlData } = supabase.storage.from('invoices').getPublicUrl(data.path);
+  return urlData.publicUrl;
+}
+
 export async function deleteFile(bucket: string, path: string): Promise<void> {
   const { error } = await supabase.storage.from(bucket).remove([path]);
   if (error) throw error;

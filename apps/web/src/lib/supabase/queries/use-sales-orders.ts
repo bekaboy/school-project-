@@ -11,7 +11,7 @@ export function useSalesOrders(salesRepId?: string) {
     queryFn: async () => {
       let query = supabase
         .from('sales_orders')
-        .select('*, customers(*), users!sales_orders_sales_rep_id_fkey(*)')
+        .select('*, customers(*), users!sales_orders_sales_rep_id_fkey(*), order_items(*, products(*))')
         .order('created_at', { ascending: false });
       if (salesRepId) {
         query = query.eq('sales_rep_id', salesRepId);
@@ -61,7 +61,7 @@ export function useOrdersByStatus(status: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('sales_orders')
-        .select('*, customers(*), users!sales_orders_sales_rep_id_fkey(*)')
+        .select('*, customers(*), users!sales_orders_sales_rep_id_fkey(*), order_items(*, products(*))')
         .eq('status', status)
         .order('created_at', { ascending: false });
       if (error) throw error;

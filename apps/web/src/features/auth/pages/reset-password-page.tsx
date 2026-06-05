@@ -86,7 +86,7 @@ export function ResetPasswordPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="w-full rounded-lg border bg-white/60 px-4 py-3 text-base backdrop-blur-sm"
-                  placeholder="Min 8 chars, upper, lower, number, special"
+                  placeholder="Min 8 chars, upper, lower, number"
                 />
               </div>
               <div>
@@ -107,7 +107,7 @@ export function ResetPasswordPage() {
                   <li className={/[A-Z]/.test(password) ? 'text-green-600' : ''}>One uppercase letter</li>
                   <li className={/[a-z]/.test(password) ? 'text-green-600' : ''}>One lowercase letter</li>
                   <li className={/[0-9]/.test(password) ? 'text-green-600' : ''}>One number</li>
-                  <li className={/[^A-Za-z0-9]/.test(password) ? 'text-green-600' : ''}>One special character</li>
+
                 </ul>
               </div>
 

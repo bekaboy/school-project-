@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../client';
-import { signUp } from '../auth';
+import { adminCreateUser } from '../auth';
 import type { Tables, TablesInsert, TablesUpdate } from '@pharma-ims/shared';
 
 const queryKey = ['users'] as const;
@@ -53,11 +53,10 @@ export function useCreateUserWithAuth() {
     }) => {
       const { email, password, fullName, phone, role, isActive } = params;
 
-      const { data: authData, error: authError } = await signUp(email, password, role, fullName);
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('Auth user creation returned no user');
+      const { user } = await adminCreateUser(email, password, role, fullName);
+      const authId = (user as unknown as { id: string }).id;
+      if (!authId) throw new Error('Auth user creation returned no user ID');
 
-      const authId = authData.user.id;
       const { data, error } = await supabase
         .from('users')
         .insert({

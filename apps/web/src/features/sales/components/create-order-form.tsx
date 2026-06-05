@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCustomers, useProducts, useBatches, useCreateSalesOrder, useCreateOrderItems } from '@/lib/supabase/queries';
+import { useCustomers, useProducts, useBatches, useCreateSalesOrder, useCreateOrderItems, useUpdateSalesOrder } from '@/lib/supabase/queries';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,6 +27,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { useMachine } from '@xstate/react';
 import { salesOrderMachine } from '@/features/sales/machines/sales-order.state-machine';
 import { generateProformaPdf, downloadBlob } from '@/lib/pdf/proforma';
+import { useToast } from '@/hooks/use-toast';
 
 interface LineItem {
   productId: string;
@@ -50,7 +51,9 @@ export function CreateOrderForm() {
   const { data: batches } = useBatches();
   const createOrder = useCreateSalesOrder();
   const createItems = useCreateOrderItems();
+  const updateOrder = useUpdateSalesOrder();
   const user = useAuthStore((s) => s.user);
+  const { toast } = useToast();
 
   const MACHINE_TO_DB_STATUS: Record<string, string> = {
   Draft: 'Draft',
@@ -195,61 +198,102 @@ const [state, send] = useMachine(salesOrderMachine);
       return;
     }
 
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    const seq = String(Math.floor(Math.random() * 90000) + 10000);
-    const orderId = `SO-${y}${m}${d}-${seq}`;
+    try {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      const seq = String(Math.floor(Math.random() * 90000) + 10000);
+      const orderId = `SO-${y}${m}${d}-${seq}`;
 
-    const newOrder = await createOrder.mutateAsync({
-      order_id: orderId,
-      customer_id: form.customerId,
-      sales_rep_id: user.id,
-      status: MACHINE_TO_DB_STATUS[state.value as string] ?? (state.value as string),
-      subtotal,
-      tax: taxTotal,
-      total: grandTotal,
-      delivery_address: form.deliveryAddress || null,
-      special_instructions: form.specialInstructions || null,
-      order_date: new Date().toISOString(),
-    } as never);
+      toast({ title: 'Creating order...', description: 'Saving order to database.' });
 
-    const items = form.items.map((item) => ({
-      order_id: newOrder.id,
-      product_id: item.productId,
-      batch_id: '',
-      quantity: item.quantity,
-      unit_price: item.unitPrice,
-      total_price: item.unitPrice * item.quantity,
-    }));
+      let newOrder: Tables<'sales_orders'>;
+      try {
+        newOrder = await createOrder.mutateAsync({
+          order_id: orderId,
+          customer_id: form.customerId,
+          sales_rep_id: user.id,
+          status: MACHINE_TO_DB_STATUS[state.value as string] ?? (state.value as string),
+          subtotal,
+          tax: taxTotal,
+          total: grandTotal,
+          delivery_address: form.deliveryAddress || null,
+          special_instructions: form.specialInstructions || null,
+          order_date: new Date().toISOString(),
+        } as never);
+      } catch (err) {
+        toast({ title: 'Database error', description: err instanceof Error ? err.message : 'Failed to save order', variant: 'destructive' });
+        return;
+      }
 
-    await createItems.mutateAsync(items as never);
+      try {
+        const items = form.items.map((item) => {
+          const activeBatch = batches?.find(
+            (b) => b.product_id === item.productId && b.batch_status === 'Active' && b.quantity_remaining > 0
+          );
+          return {
+            order_id: newOrder.id,
+            product_id: item.productId,
+            batch_id: activeBatch?.id ?? null,
+            quantity: item.quantity,
+            unit_price: item.unitPrice,
+            total_price: item.unitPrice * item.quantity,
+          };
+        });
+        await createItems.mutateAsync(items as never);
+      } catch (err) {
+        toast({ title: 'Items error', description: err instanceof Error ? err.message : 'Failed to save order items', variant: 'destructive' });
+        return;
+      }
 
-    send({ type: 'GENERATE_PROFORMA' });
+      send({ type: 'GENERATE_PROFORMA' });
 
-    const pdfData = {
-      orderId: newOrder.order_id,
-      date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
-      customerName: selectedCustomer?.name ?? '',
-      customerAddress: form.deliveryAddress || selectedCustomer?.address || '',
-      customerPhone: selectedCustomer?.phone ?? '',
-      salesRep: user.email ?? '',
-      items: form.items.map((i) => ({
-        description: i.productName,
-        quantity: i.quantity,
-        unitPrice: i.unitPrice,
-        total: i.unitPrice * i.quantity,
-      })),
-      subtotal,
-      tax: taxTotal,
-      total: grandTotal,
-    };
+      await updateOrder.mutateAsync({ id: newOrder.id, status: 'Proforma Generated' });
 
-    const blob = await generateProformaPdf(pdfData);
-    downloadBlob(blob, `proforma-${newOrder.order_id}.pdf`);
+      toast({ title: 'Order created', description: 'Generating proforma PDF...' });
 
-    navigate('/sales');
+      const pdfData = {
+        orderId: newOrder.order_id,
+        date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+        customerName: selectedCustomer?.name ?? '',
+        customerAddress: form.deliveryAddress || selectedCustomer?.address || '',
+        customerPhone: selectedCustomer?.phone ?? '',
+        salesRep: user.email ?? '',
+        items: form.items.map((i) => ({
+          description: i.productName,
+          quantity: i.quantity,
+          unitPrice: i.unitPrice,
+          total: i.unitPrice * i.quantity,
+        })),
+        subtotal,
+        tax: taxTotal,
+        total: grandTotal,
+      };
+
+      let blob: Blob;
+      try {
+        blob = await generateProformaPdf(pdfData);
+      } catch (err) {
+        toast({ title: 'PDF generation error', description: err instanceof Error ? err.message : 'Failed to generate PDF', variant: 'destructive' });
+        navigate('/sales');
+        return;
+      }
+
+      try {
+        downloadBlob(blob, `proforma-${newOrder.order_id}.pdf`);
+        toast({ title: 'Proforma downloaded', description: `Order ${newOrder.order_id} created successfully.` });
+      } catch (err) {
+        toast({ title: 'Download error', description: err instanceof Error ? err.message : 'PDF created but download failed', variant: 'destructive' });
+      }
+      navigate('/sales');
+    } catch (err) {
+      toast({
+        title: 'Unexpected error',
+        description: err instanceof Error ? err.message : 'An unexpected error occurred.',
+        variant: 'destructive',
+      });
+    }
   }
 
   const steps = ['Customer', 'Items', 'Review'];

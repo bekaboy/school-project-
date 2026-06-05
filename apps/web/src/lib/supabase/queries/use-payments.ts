@@ -10,7 +10,7 @@ export function usePayments() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('payments')
-        .select('*, sales_orders!inner(*, customers(*))')
+        .select('*, sales_orders!inner(*, customers(*), order_items(*, products(*)))')
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
@@ -22,7 +22,7 @@ export function usePaymentByOrder(orderId: string) {
   return useQuery({
     queryKey: [...queryKey, 'order', orderId],
     queryFn: async () => {
-      const { data, error } = await supabase.from('payments').select('*').eq('order_id', orderId).single();
+      const { data, error } = await supabase.from('payments').select('*').eq('order_id', orderId).maybeSingle();
       if (error) throw error;
       return data as Tables<'payments'> | null;
     },
@@ -36,7 +36,7 @@ export function usePaymentsByStatus(status: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('payments')
-        .select('*, sales_orders!inner(*, customers(*))')
+        .select('*, sales_orders!inner(*, customers(*), order_items(*, products(*)))')
         .eq('status', status)
         .order('created_at', { ascending: false });
       if (error) throw error;

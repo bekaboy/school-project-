@@ -1,6 +1,9 @@
 import type { User, AuthResponse } from '@supabase/supabase-js';
 import { supabase } from './client';
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SERVICE_ROLE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+
 export async function signIn(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -51,4 +54,24 @@ export function generateTempPassword(): string {
     pw += all[Math.floor(Math.random() * all.length)];
   }
   return pw.split('').sort(() => Math.random() - 0.5).join('');
+}
+
+export async function adminCreateUser(email: string, password: string, role: string, fullName: string): Promise<{ user: User }> {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
+    },
+    body: JSON.stringify({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { role, full_name: fullName },
+    }),
+  });
+  const body = await res.json();
+  if (!res.ok) throw new Error(body.msg || body.error || 'Failed to create auth user');
+  return { user: body as unknown as User };
 }

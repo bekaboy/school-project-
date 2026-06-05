@@ -17,6 +17,10 @@ import type { Tables } from '@pharma-ims/shared';
 type PaymentWithOrder = Tables<'payments'> & {
   sales_orders: Tables<'sales_orders'> & {
     customers: Pick<Tables<'customers'>, 'name'> | null;
+    order_items: Array<{
+      products: Pick<Tables<'products'>, 'generic_name' | 'strength'> | null;
+      quantity: number;
+    }> | null;
   };
 };
 
@@ -92,6 +96,7 @@ export function PaymentTable({ payments, onVerify, onReject }: PaymentTableProps
             <TableRow>
               <TableHead>Order</TableHead>
               <TableHead>Customer</TableHead>
+              <TableHead>Items</TableHead>
               <TableHead className="text-right">Amount</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Status</TableHead>
@@ -103,7 +108,7 @@ export function PaymentTable({ payments, onVerify, onReject }: PaymentTableProps
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={9} className="h-32 text-center text-muted-foreground">
                   No payments found.
                 </TableCell>
               </TableRow>
@@ -115,6 +120,14 @@ export function PaymentTable({ payments, onVerify, onReject }: PaymentTableProps
                   </TableCell>
                   <TableCell className="font-medium">
                     {payment.sales_orders?.customers?.name ?? 'Unknown'}
+                  </TableCell>
+                  <TableCell className="text-xs max-w-40 truncate">
+                    {payment.sales_orders?.order_items?.length
+                      ? payment.sales_orders.order_items.map((item) =>
+                          `${item.products?.generic_name ?? 'Unknown'} x${item.quantity}`
+                        ).join(', ')
+                      : <span className="text-muted-foreground">—</span>
+                    }
                   </TableCell>
                   <TableCell className="text-right font-mono">
                     {formatCurrency(payment.amount)}

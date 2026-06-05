@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useInvoices } from '@/lib/supabase/queries';
 import { InvoiceTable } from '@/features/invoices/components/invoice-table';
-import { generateInvoiceForOrder } from '@/lib/utils/invoice-generator';
+import { regenerateInvoicePdf } from '@/lib/utils/invoice-generator';
 import { Button } from '@/components/ui/button';
 import { FileText, RefreshCw } from 'lucide-react';
 
@@ -22,10 +22,10 @@ export function InvoicePage() {
     },
   }));
 
-  async function handleGenerate(orderId: string) {
+  async function handleGenerate(invoiceId: string) {
     setGenerating(true);
     try {
-      await generateInvoiceForOrder(orderId);
+      await regenerateInvoicePdf(invoiceId);
       await refetch();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Failed to generate invoice');

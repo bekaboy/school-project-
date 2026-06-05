@@ -11,12 +11,22 @@ import { DeliveryTable } from '@/features/deliveries/components/delivery-table';
 import { DeliveryAssignDialog } from '@/features/deliveries/components/delivery-assign-dialog';
 import { useAuthStore } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
-import { Plus, Truck, Printer } from 'lucide-react';
+import { Plus, Truck, Printer, Package } from 'lucide-react';
 import { DeliveryConfirmDialog } from '@/features/deliveries/components/delivery-confirm-dialog';
 import { generateDeliveryManifestPdf, downloadBlob } from '@/lib/pdf/delivery-manifest';
+import { supabase } from '@/lib/supabase/client';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { formatCurrency } from '@/lib/utils/formatters';
 import type { Tables } from '@pharma-ims/shared';
 
 type DeliveryWithRelations = Tables<'deliveries'> & {
+  delivery_notes: string | null;
   sales_orders: Tables<'sales_orders'> & {
     customers: Pick<Tables<'customers'>, 'name' | 'address' | 'phone'> | null;
   };
@@ -38,7 +48,9 @@ export function DeliveryPage() {
 
   const [assignOpen, setAssignOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [newDeliveryOpen, setNewDeliveryOpen] = useState(false);
   const [confirmDeliveryId, setConfirmDeliveryId] = useState<string | null>(null);
+  const [creatingIds, setCreatingIds] = useState<Set<string>>(new Set());
   const [selectedDelivery, setSelectedDelivery] = useState<DeliveryWithRelations | null>(null);
 
   const deliveries = (isDriver ? driverDeliveries : allDeliveries) as DeliveryWithRelations[] | undefined;
@@ -66,7 +78,7 @@ export function DeliveryPage() {
     setSelectedDelivery(null);
   }
 
-  async function handleStatusUpdate(id: string, status: string, reason?: string) {
+  async function handleStatusUpdate(id: string, status: string, orderId: string, reason?: string) {
     const updates: Record<string, unknown> = { status };
 
     if (status === 'Delivered') {
@@ -81,7 +93,17 @@ export function DeliveryPage() {
       updates.assigned_at = new Date().toISOString();
     }
 
-    await updateDelivery.mutateAsync({ id, ...updates } as never);
+    const delivery = await updateDelivery.mutateAsync({ id, ...updates } as never);
+
+    const orderStatusMap: Record<string, string> = {
+      'In Transit': 'In Transit',
+      Failed: 'Failed',
+      Cancelled: 'Cancelled',
+    };
+    const orderStatus = orderStatusMap[status];
+    if (orderStatus && orderId) {
+      await supabase.from('sales_orders').update({ status: orderStatus }).eq('id', orderId);
+    }
   }
 
   async function handleCreateDelivery(orderId: string) {
@@ -97,11 +119,13 @@ export function DeliveryPage() {
     const manifestDeliveries = deliveries.map((d: any) => ({
       orderId: d.sales_orders?.order_id ?? '',
       customerName: d.sales_orders?.customers?.name ?? '—',
-      address: d.sales_orders?.customers?.address ?? '',
+      address: d.sales_orders?.delivery_address || d.sales_orders?.customers?.address || '',
       phone: d.sales_orders?.customers?.phone ?? '',
       driverName: d.users?.full_name ?? 'Unassigned',
       status: d.status,
-      items: d.sales_orders?.order_items?.length ?? 0,
+      items: (d.sales_orders?.order_items ?? []).map((item: any) =>
+        `${item.products?.generic_name ?? 'Unknown'} x${item.quantity}`
+      ),
     }));
     const blob = await generateDeliveryManifestPdf({
       date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
@@ -136,7 +160,7 @@ export function DeliveryPage() {
             </Button>
           )}
           {!isDriver && verifiedOrders.length > 0 && (
-            <Button onClick={() => handleCreateDelivery(verifiedOrders[0].id)}>
+            <Button onClick={() => setNewDeliveryOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               New Delivery
             </Button>
@@ -151,23 +175,10 @@ export function DeliveryPage() {
             <p className="text-sm text-muted-foreground flex-1">
               {verifiedOrders.length} order{verifiedOrders.length > 1 ? 's' : ''} ready for delivery.
             </p>
-            <div className="flex gap-2">
-              {verifiedOrders.slice(0, 3).map((o: any) => (
-                <Button
-                  key={o.id}
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleCreateDelivery(o.id)}
-                >
-                  {o.order_id}
-                </Button>
-              ))}
-              {verifiedOrders.length > 3 && (
-                <span className="text-sm text-muted-foreground self-center">
-                  +{verifiedOrders.length - 3} more
-                </span>
-              )}
-            </div>
+            <Button size="sm" onClick={() => setNewDeliveryOpen(true)}>
+              <Package className="mr-1 h-4 w-4" />
+              Create Deliveries
+            </Button>
           </div>
         </div>
       )}
@@ -203,17 +214,61 @@ export function DeliveryPage() {
         onOpenChange={setConfirmOpen}
         onConfirm={async (recipientName, notes) => {
           if (!confirmDeliveryId) return;
+          const delivery = (deliveries ?? []).find((d) => d.id === confirmDeliveryId);
           await updateDelivery.mutateAsync({
             id: confirmDeliveryId,
             status: 'Delivered',
             delivered_at: new Date().toISOString(),
             recipient_name: recipientName,
+            delivery_notes: notes || null,
           } as never);
+          if (delivery?.order_id) {
+            await supabase.from('sales_orders').update({ status: 'Delivered' }).eq('id', delivery.order_id);
+          }
           setConfirmOpen(false);
           setConfirmDeliveryId(null);
         }}
         isPending={updateDelivery.isPending}
       />
+
+      <Dialog open={newDeliveryOpen} onOpenChange={setNewDeliveryOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Create Deliveries</DialogTitle>
+            <DialogDescription>
+              Select orders to create delivery records for.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            {verifiedOrders.map((o: any) => (
+              <div key={o.id} className="flex items-center justify-between rounded-md border p-3">
+                <div className="min-w-0 flex-1">
+                  <p className="font-mono text-xs font-medium">{o.order_id}</p>
+                  <p className="text-sm truncate">{o.customers?.name ?? 'Unknown'}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatCurrency(o.total)} — {o.delivery_address || 'No address'}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    setCreatingIds((prev) => new Set(prev).add(o.id));
+                    await handleCreateDelivery(o.id);
+                    setCreatingIds((prev) => {
+                      const next = new Set(prev);
+                      next.delete(o.id);
+                      return next;
+                    });
+                  }}
+                  disabled={creatingIds.has(o.id)}
+                >
+                  {creatingIds.has(o.id) ? 'Adding...' : 'Add'}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

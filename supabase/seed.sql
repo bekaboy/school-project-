@@ -1,11 +1,7 @@
--- Seed users (auth users need to be created via Supabase dashboard or API)
--- These are placeholder records that link to auth.users
+-- Admin user (auth user must be created first via GoTrue admin API)
+-- Email: kidistkassahun@gmail.com  Password: Kiki@2121
 INSERT INTO users (id, email, full_name, phone, role, is_active) VALUES
-  ('00000000-0000-0000-0000-000000000001', 'admin@pharma.com', 'Era Med Admin', '+251911111111', 'Technical Manager/Owner', true),
-  ('00000000-0000-0000-0000-000000000002', 'sales@pharma.com', 'Sales Rep One', '+251911111112', 'Sales Representative', true),
-  ('00000000-0000-0000-0000-000000000003', 'store@pharma.com', 'Store Manager', '+251911111113', 'Store Manager', true),
-  ('00000000-0000-0000-0000-000000000004', 'finance@pharma.com', 'Finance Officer', '+251911111114', 'Finance Officer', true),
-  ('00000000-0000-0000-0000-000000000005', 'driver@pharma.com', 'Delivery Driver', '+251911111115', 'Delivery Driver', true);
+  ('c15f3daf-c23c-45d6-a0cf-5f029b060c82', 'kidistkassahun@gmail.com', 'Kidist Abebe', '+251938047515', 'Technical Manager/Owner', true);
 
 -- Seed products
 INSERT INTO products (id, product_id, generic_name, brand_name, strength, dosage_form, pack_size, manufacturer, country_of_origin, unit_of_measure, category, cost_price, selling_price, tax_rate, reorder_quantity, storage_requirements) VALUES

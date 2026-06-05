@@ -9,6 +9,10 @@ import { useAuthStore } from '@/stores/auth-store';
 type PaymentWithOrder = Tables<'payments'> & {
   sales_orders: Tables<'sales_orders'> & {
     customers: Pick<Tables<'customers'>, 'name'> | null;
+    order_items: Array<{
+      products: Pick<Tables<'products'>, 'generic_name' | 'strength'> | null;
+      quantity: number;
+    }> | null;
   };
 };
 
@@ -57,6 +61,10 @@ export function PaymentPage() {
         id: selectedPayment.id,
         status: 'Rejected',
         rejection_reason: reason,
+      });
+      await updateOrder.mutateAsync({
+        id: selectedPayment.order_id,
+        status: 'Proforma Generated',
       });
     }
 

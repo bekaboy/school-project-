@@ -18,6 +18,10 @@ import type { Tables } from '@pharma-ims/shared';
 type OrderWithRelations = Tables<'sales_orders'> & {
   customers: Pick<Tables<'customers'>, 'name'> | null;
   users: Pick<Tables<'users'>, 'full_name'> | null;
+  order_items: Array<{
+    products: Pick<Tables<'products'>, 'generic_name' | 'strength'> | null;
+    quantity: number;
+  }> | null;
 };
 
 const PAGE_SIZE = 20;
@@ -53,9 +57,10 @@ function SortableHead<T>({ label, sortKey, currentKey, direction, onClick, class
 interface OrderTableProps {
   orders: OrderWithRelations[];
   onCancel?: (id: string) => void;
+  onView?: (order: OrderWithRelations) => void;
 }
 
-export function OrderTable({ orders, onCancel }: OrderTableProps) {
+export function OrderTable({ orders, onCancel, onView }: OrderTableProps) {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
 
@@ -94,6 +99,7 @@ export function OrderTable({ orders, onCancel }: OrderTableProps) {
               <SortableHead label="Order #" sortKey="order_id" currentKey={sortKey} direction={sortDir} onClick={getSortProps('order_id').onClick} />
               <TableHead>Customer</TableHead>
               <TableHead>Sales Rep</TableHead>
+              <TableHead>Items</TableHead>
               <SortableHead label="Date" sortKey="order_date" currentKey={sortKey} direction={sortDir} onClick={getSortProps('order_date').onClick} />
               <SortableHead label="Total" sortKey="total" currentKey={sortKey} direction={sortDir} onClick={getSortProps('total').onClick} className="text-right" />
               <SortableHead label="Status" sortKey="status" currentKey={sortKey} direction={sortDir} onClick={getSortProps('status').onClick} />
@@ -104,7 +110,7 @@ export function OrderTable({ orders, onCancel }: OrderTableProps) {
           <TableBody>
             {pageItems.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={onCancel ? 8 : 7} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={onCancel ? 9 : 8} className="h-32 text-center text-muted-foreground">
                   No sales orders found.
                 </TableCell>
               </TableRow>
@@ -114,6 +120,14 @@ export function OrderTable({ orders, onCancel }: OrderTableProps) {
                   <TableCell className="font-mono text-xs">{order.order_id}</TableCell>
                   <TableCell className="font-medium">{order.customers?.name ?? 'Unknown'}</TableCell>
                   <TableCell className="text-muted-foreground">{order.users?.full_name ?? '—'}</TableCell>
+                  <TableCell className="text-xs max-w-48 truncate">
+                    {order.order_items?.length
+                      ? order.order_items.map((item) =>
+                          `${item.products?.generic_name ?? 'Unknown'} x${item.quantity}`
+                        ).join(', ')
+                      : <span className="text-muted-foreground">—</span>
+                    }
+                  </TableCell>
                   <TableCell className="text-sm">{formatDate(order.order_date ?? order.created_at ?? '')}</TableCell>
                   <TableCell className="text-right font-mono">
                     {formatCurrency(order.total)}
@@ -124,7 +138,7 @@ export function OrderTable({ orders, onCancel }: OrderTableProps) {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" onClick={() => onView?.(order)} title="View order details">
                       <Eye className="h-4 w-4" />
                     </Button>
                   </TableCell>

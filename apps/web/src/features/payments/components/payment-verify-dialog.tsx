@@ -16,6 +16,10 @@ import type { Tables } from '@pharma-ims/shared';
 type PaymentWithOrder = Tables<'payments'> & {
   sales_orders: Tables<'sales_orders'> & {
     customers: Pick<Tables<'customers'>, 'name'> | null;
+    order_items: Array<{
+      products: Pick<Tables<'products'>, 'generic_name' | 'strength'> | null;
+      quantity: number;
+    }> | null;
   };
 };
 
@@ -67,6 +71,17 @@ export function PaymentVerifyDialog({ open, onOpenChange, payment, onConfirm, is
               <span className="text-muted-foreground">Submitted</span>
               <span>{formatDateTime(payment.created_at ?? '')}</span>
             </div>
+            {payment.sales_orders?.order_items && payment.sales_orders.order_items.length > 0 && (
+              <div className="border-t pt-2 mt-2">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Items</p>
+                {payment.sales_orders.order_items.map((item, i) => (
+                  <div key={i} className="flex justify-between text-xs">
+                    <span>{item.products?.generic_name ?? 'Unknown'}</span>
+                    <span className="font-mono">x{item.quantity}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {payment.proof_url && (

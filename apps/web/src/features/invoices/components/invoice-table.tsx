@@ -27,7 +27,7 @@ interface InvoiceRow {
 
 interface InvoiceTableProps {
   invoices: InvoiceRow[];
-  onGenerate: (orderId: string) => void;
+  onGenerate: (invoiceId: string) => void;
   generating: boolean;
 }
 
@@ -99,15 +99,25 @@ export function InvoiceTable({ invoices, onGenerate, generating }: InvoiceTableP
                     )}
                   </TableCell>
                   <TableCell>
-                    {!inv.pdf_url && (
+                    {!inv.pdf_url ? (
                       <Button
                         size="sm"
-                        onClick={() => onGenerate(inv.order_id)}
+                        onClick={() => onGenerate(inv.id)}
                         disabled={generating}
                       >
                         <Download className="mr-1 h-4 w-4" />
                         Generate
                       </Button>
+                    ) : (
+                      <a
+                        href={inv.pdf_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-sm text-primary underline underline-offset-2"
+                      >
+                        <Download className="h-4 w-4" />
+                        Download
+                      </a>
                     )}
                   </TableCell>
                 </TableRow>

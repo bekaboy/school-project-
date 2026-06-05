@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase/client';
 import { deductFifo } from './fifo';
 import { generateInvoicePdf, downloadBlob } from '@/lib/pdf/invoice';
+import { uploadInvoicePdf } from '@/lib/supabase/storage';
 
 interface BatchStockItem {
   id: string;
@@ -154,5 +155,58 @@ export async function generateInvoiceForOrder(salesOrderId: string) {
   const blob = await generateInvoicePdf(pdfData);
   downloadBlob(blob, `invoice-${invNumber}.pdf`);
 
+  const pdfUrl = await uploadInvoicePdf(blob, invNumber);
+
+  await supabase
+    .from('invoices')
+    .update({ pdf_url: pdfUrl })
+    .eq('id', invoice.id);
+
   return invoice;
+}
+
+export async function regenerateInvoicePdf(invoiceId: string) {
+  const { data: invoice, error: invError } = await supabase
+    .from('invoices')
+    .select('*, sales_orders(*, order_items(*, products(*)), customers(*))')
+    .eq('id', invoiceId)
+    .single();
+
+  if (invError) throw invError;
+
+  const order = invoice.sales_orders as any;
+  const { data: allBatches } = await supabase
+    .from('batches')
+    .select('*')
+    .eq('batch_status', 'Active')
+    .order('manufacturing_date');
+
+  const pdfData = {
+    invoiceNumber: invoice.invoice_number,
+    orderId: order.order_id,
+    date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+    customerName: order.customers?.name ?? '',
+    customerAddress: order.customers?.address ?? '',
+    customerPhone: order.customers?.phone ?? '',
+    customerTaxId: order.customers?.tax_id ?? '',
+    items: order.order_items.map((item: any) => ({
+      description: `${item.products?.generic_name ?? 'Unknown'} (${item.products?.brand_name ?? ''}) - ${item.products?.strength ?? ''}`,
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+      total: item.total_price,
+    })),
+    subtotal: order.subtotal,
+    tax: order.tax,
+    total: order.total,
+  };
+
+  const blob = await generateInvoicePdf(pdfData);
+  downloadBlob(blob, `invoice-${invoice.invoice_number}.pdf`);
+
+  const pdfUrl = await uploadInvoicePdf(blob, invoice.invoice_number);
+
+  await supabase
+    .from('invoices')
+    .update({ pdf_url: pdfUrl })
+    .eq('id', invoice.id);
 }

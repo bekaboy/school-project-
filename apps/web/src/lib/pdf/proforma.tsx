@@ -1,78 +1,123 @@
 import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer';
 
+const colors = {
+  primary: '#1a4731',
+  secondary: '#b8860b',
+  text: '#1a1a1a',
+  muted: '#6b7280',
+  border: '#d1d5db',
+  background: '#f8f6f0',
+  headerBg: '#1a4731',
+  headerText: '#ffffff',
+  accent: '#c41e3a',
+};
+
 const styles = StyleSheet.create({
   page: {
-    padding: 40,
-    fontSize: 10,
+    padding: 48,
+    fontSize: 9,
     fontFamily: 'Helvetica',
+    backgroundColor: '#ffffff',
   },
-  header: {
-    marginBottom: 24,
-    borderBottomWidth: 2,
-    borderBottomColor: '#1e3a5f',
-    paddingBottom: 12,
+  headerBar: {
+    backgroundColor: colors.headerBg,
+    marginBottom: 28,
+    padding: 24,
+    paddingTop: 28,
+    paddingBottom: 20,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1e3a5f',
-    marginBottom: 4,
+  companyName: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: colors.headerText,
+    letterSpacing: 1,
   },
-  subtitle: {
-    fontSize: 14,
-    color: '#2d5a3d',
-    marginBottom: 4,
+  companyNameAm: {
+    fontSize: 10,
+    color: '#a3b8a8',
+    marginTop: 2,
   },
-  proformaLabel: {
-    fontSize: 12,
-    color: '#6b7280',
-    marginTop: 4,
-  },
-  row: {
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    alignItems: 'flex-end',
+    marginTop: 8,
   },
-  section: {
-    flex: 1,
-  },
-  label: {
-    fontSize: 8,
-    color: '#9ca3af',
-    marginBottom: 2,
+  docLabel: {
+    fontSize: 13,
+    fontWeight: 700,
+    color: colors.secondary,
+    letterSpacing: 2,
     textTransform: 'uppercase',
   },
-  value: {
-    fontSize: 10,
+  docLabelAm: {
+    fontSize: 8,
+    color: '#a3b8a8',
+    marginTop: 1,
+  },
+  infoGrid: {
+    flexDirection: 'row',
+    marginBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    paddingBottom: 16,
+  },
+  infoCol: {
+    flex: 1,
+  },
+  infoLabel: {
+    fontSize: 7,
+    color: colors.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
     marginBottom: 2,
   },
+  infoValue: {
+    fontSize: 9,
+    color: colors.text,
+    marginBottom: 4,
+  },
   table: {
-    marginTop: 8,
-    marginBottom: 16,
+    marginBottom: 24,
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#f3f4f6',
+    backgroundColor: colors.background,
     paddingVertical: 6,
     paddingHorizontal: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#d1d5db',
+    borderBottomWidth: 2,
+    borderBottomColor: colors.primary,
+  },
+  tableHeaderText: {
+    fontSize: 7,
+    fontWeight: 700,
+    color: colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 6,
+    paddingVertical: 5,
     paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: '#f0ece4',
+  },
+  tableRowAlt: {
+    flexDirection: 'row',
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0ece4',
+    backgroundColor: '#fcfaf7',
   },
   colDesc: { flex: 3 },
-  colQty: { flex: 1, textAlign: 'right' },
-  colPrice: { flex: 1.5, textAlign: 'right' },
-  colTotal: { flex: 1.5, textAlign: 'right' },
-  totalsSection: {
+  colQty: { flex: 0.8, textAlign: 'right' },
+  colPrice: { flex: 1.2, textAlign: 'right' },
+  colTotal: { flex: 1.2, textAlign: 'right' },
+  totalsContainer: {
     marginLeft: 'auto',
-    width: '40%',
-    marginTop: 8,
+    width: '45%',
+    marginBottom: 24,
   },
   totalRow: {
     flexDirection: 'row',
@@ -80,43 +125,73 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     paddingHorizontal: 8,
   },
-  grandTotal: {
+  totalBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  grandTotalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 6,
     paddingHorizontal: 8,
-    backgroundColor: '#f3f4f6',
-    fontWeight: 'bold',
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.primary,
     marginTop: 4,
+  },
+  grandTotalText: {
+    fontSize: 10,
+    fontWeight: 700,
+    color: colors.primary,
+  },
+  stampContainer: {
+    position: 'absolute',
+    bottom: 120,
+    right: 48,
+    width: 120,
+    height: 120,
+    borderWidth: 3,
+    borderColor: '#2563eb',
+    borderRadius: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.3,
+  },
+  stampText: {
+    fontSize: 8,
+    color: '#2563eb',
+    fontWeight: 700,
+    textAlign: 'center',
+  },
+  termsBox: {
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: '#e5e0d8',
+  },
+  termsTitle: {
+    fontSize: 8,
+    fontWeight: 700,
+    color: colors.text,
+    marginBottom: 4,
+  },
+  termsText: {
+    fontSize: 7,
+    color: colors.muted,
+    lineHeight: 1.6,
   },
   footer: {
     position: 'absolute',
     bottom: 40,
-    left: 40,
-    right: 40,
+    left: 48,
+    right: 48,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: '#e5e0d8',
     paddingTop: 8,
-    fontSize: 8,
-    color: '#9ca3af',
+    fontSize: 7,
+    color: colors.muted,
     textAlign: 'center',
-  },
-  terms: {
-    marginTop: 24,
-    padding: 12,
-    backgroundColor: '#f9fafb',
-    borderRadius: 4,
-  },
-  termsTitle: {
-    fontSize: 9,
-    fontWeight: 'bold',
-    marginBottom: 4,
-    color: '#374151',
-  },
-  termsText: {
-    fontSize: 8,
-    color: '#6b7280',
-    lineHeight: 1.5,
   },
 });
 
@@ -144,74 +219,90 @@ function ProformaDocument({ data }: { data: ProformaData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.header}>
-          <Text style={styles.title}>ERA MED PHARMACEUTICAL WHOLESALE PLC</Text>
-          <Text style={styles.subtitle}>በኢራ ሜድ ፋርማሲዩቲካል ኅብረት ሥርዓት የጅምላ ሽያጭ ኃላፊነቱ የተወሰነ የግል ማኅበር</Text>
-          <Text style={styles.proformaLabel}>PROFORMA INVOICE / ቅድመ ክፍያ ደረሰኝ</Text>
+        <View style={styles.headerBar}>
+          <Text style={styles.companyName}>ERA MED PHARMACEUTICAL WHOLESALE PLC</Text>
+          <Text style={styles.companyNameAm}>የኢራ ሜድ ፋርማሲዩቲካል ጅምላ ሽያጭ ኃላፊነቱ የተወሰነ የግል ማኅበር</Text>
+          <View style={styles.headerRow}>
+            <View>
+              <Text style={styles.docLabel}>Proforma Invoice</Text>
+              <Text style={styles.docLabelAm}>ቅድመ ክፍያ ደረሰኝ</Text>
+            </View>
+            <View>
+              <Text style={[styles.infoValue, { color: colors.headerText, fontSize: 11, fontWeight: 700, textAlign: 'right' }]}>
+                {data.orderId}
+              </Text>
+              <Text style={[styles.infoValue, { color: '#a3b8a8', fontSize: 8, textAlign: 'right' }]}>
+                {data.date}
+              </Text>
+            </View>
+          </View>
         </View>
 
-        <View style={styles.row}>
-          <View style={styles.section}>
-            <Text style={styles.label}>Order No</Text>
-            <Text style={styles.value}>{data.orderId}</Text>
-            <Text style={styles.label}>Date</Text>
-            <Text style={styles.value}>{data.date}</Text>
+        <View style={styles.infoGrid}>
+          <View style={styles.infoCol}>
+            <Text style={styles.infoLabel}>Bill To / ለተገልጋዩ</Text>
+            <Text style={styles.infoValue}>{data.customerName}</Text>
+            <Text style={styles.infoValue}>{data.customerAddress}</Text>
+            <Text style={styles.infoValue}>{data.customerPhone}</Text>
           </View>
-          <View style={styles.section}>
-            <Text style={styles.label}>Customer</Text>
-            <Text style={styles.value}>{data.customerName}</Text>
-            <Text style={styles.value}>{data.customerAddress}</Text>
-            <Text style={styles.value}>{data.customerPhone}</Text>
-          </View>
-          <View style={styles.section}>
-            <Text style={styles.label}>Sales Rep</Text>
-            <Text style={styles.value}>{data.salesRep}</Text>
+          <View style={styles.infoCol}>
+            <Text style={styles.infoLabel}>Sales Rep / ሻጭ</Text>
+            <Text style={styles.infoValue}>{data.salesRep}</Text>
+            <Text style={styles.infoLabel}>Payment Terms / የክፍያ ሁኔታ</Text>
+            <Text style={styles.infoValue}>Due within 15 days / በ15 ቀናት ውስጥ</Text>
           </View>
         </View>
 
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={styles.colDesc}>Description / መግለጫ</Text>
-            <Text style={styles.colQty}>Qty / ብዛት</Text>
-            <Text style={styles.colPrice}>Price / ዋጋ</Text>
-            <Text style={styles.colTotal}>Total / ድምር</Text>
+            <Text style={[styles.tableHeaderText, styles.colDesc]}>Description / መግለጫ</Text>
+            <Text style={[styles.tableHeaderText, styles.colQty]}>Qty / ብዛት</Text>
+            <Text style={[styles.tableHeaderText, styles.colPrice]}>Unit Price / የአንዱ ዋጋ</Text>
+            <Text style={[styles.tableHeaderText, styles.colTotal]}>Total / ድምር</Text>
           </View>
           {data.items.map((item, i) => (
-            <View style={styles.tableRow} key={i}>
+            <View style={i % 2 === 0 ? styles.tableRow : styles.tableRowAlt} key={i}>
               <Text style={styles.colDesc}>{item.description}</Text>
               <Text style={styles.colQty}>{item.quantity}</Text>
-              <Text style={styles.colPrice}>{format(item.unitPrice)}</Text>
-              <Text style={styles.colTotal}>{format(item.total)}</Text>
+              <Text style={styles.colPrice}>{fmt(item.unitPrice)}</Text>
+              <Text style={styles.colTotal}>{fmt(item.total)}</Text>
             </View>
           ))}
         </View>
 
-        <View style={styles.totalsSection}>
-          <View style={styles.totalRow}>
+        <View style={styles.totalsContainer}>
+          <View style={[styles.totalRow, styles.totalBorder]}>
             <Text>Subtotal / ድምር</Text>
-            <Text>{format(data.subtotal)}</Text>
+            <Text>{fmt(data.subtotal)}</Text>
           </View>
-          <View style={styles.totalRow}>
-            <Text>VAT / ተ.እ.ታ</Text>
-            <Text>{format(data.tax)}</Text>
+          <View style={[styles.totalRow, styles.totalBorder]}>
+            <Text>VAT (15%) / ተ.እ.ታ (15%)</Text>
+            <Text>{fmt(data.tax)}</Text>
           </View>
-          <View style={styles.grandTotal}>
-            <Text>Total / ጠቅላላ</Text>
-            <Text>{format(data.total)}</Text>
+          <View style={styles.grandTotalRow}>
+            <Text style={styles.grandTotalText}>Total Due / ጠቅላላ ክፍያ</Text>
+            <Text style={styles.grandTotalText}>{fmt(data.total)}</Text>
           </View>
         </View>
 
-        <View style={styles.terms}>
+        <View style={styles.stampContainer}>
+          <Text style={styles.stampText}>PAID</Text>
+          <Text style={[styles.stampText, { fontSize: 6 }]}>———</Text>
+          <Text style={[styles.stampText, { fontSize: 6 }]}>ERA MED</Text>
+          <Text style={[styles.stampText, { fontSize: 6 }]}>PHARMACEUTICAL</Text>
+        </View>
+
+        <View style={styles.termsBox}>
           <Text style={styles.termsTitle}>Terms & Conditions / ውሎች እና ቅድመ ሁኔታዎች</Text>
           <Text style={styles.termsText}>
-            This is a proforma invoice. Payment must be completed within 15 days of the proforma date for the quoted prices to remain valid.
+            This proforma invoice is valid for 15 days from the date above. Payment must be completed before delivery.
             {'\n'}
-            ይህ ቅድመ ክፍያ ደረሰኝ ነው። ዋጋዎች ልክ እንዲሆኑ ክፍያው ከዚህ ደረሰኝ ቀን ጀምሮ በ15 ቀናት ውስጥ መከፈል አለበት።
+            ይህ ቅድመ ክፍያ ደረሰኝ ከላይ ከተጠቀሰው ቀን ጀምሮ ለ15 ቀናት የሚሰራ ነው። ክፍያው ከመከፈሉ በፊት አቅርቦት አይደረግም።
           </Text>
         </View>
 
         <Text style={styles.footer}>
-          Bole Sub-city, Addis Ababa, Ethiopia | Phone: +251 11 123 4567 | Email: info@eramed.com
+          Bole Sub-city, Addis Ababa, Ethiopia | Tel: +251 11 123 4567 | Email: info@eramed.com
           {'\n'}
           ቦሌ ክፍለ ከተማ፣ አዲስ አበባ፣ ኢትዮጵያ
         </Text>
@@ -220,8 +311,8 @@ function ProformaDocument({ data }: { data: ProformaData }) {
   );
 }
 
-function format(amount: number): string {
-  return `${amount.toFixed(2)} ETB`;
+function fmt(amount: number): string {
+  return `${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB`;
 }
 
 export async function generateProformaPdf(data: ProformaData): Promise<Blob> {
@@ -236,6 +327,13 @@ export function downloadBlob(blob: Blob, filename: string) {
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  requestAnimationFrame(() => {
+    a.click();
+    requestAnimationFrame(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  });
 }

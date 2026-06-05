@@ -24,6 +24,7 @@ import {
 import type { Tables } from '@pharma-ims/shared';
 
 type DeliveryWithRelations = Tables<'deliveries'> & {
+  delivery_notes: string | null;
   sales_orders: Tables<'sales_orders'> & {
     customers: Pick<Tables<'customers'>, 'name' | 'address' | 'phone'> | null;
   };
@@ -43,7 +44,7 @@ interface DeliveryTableProps {
   deliveries: DeliveryWithRelations[];
   isDriver: boolean;
   onAssign: (delivery: DeliveryWithRelations) => void;
-  onStatusUpdate: (id: string, status: string, reason?: string) => void;
+  onStatusUpdate: (id: string, status: string, orderId: string, reason?: string) => void;
   updating: boolean;
 }
 
@@ -123,13 +124,33 @@ export function DeliveryTable({ deliveries, isDriver, onAssign, onStatusUpdate, 
                   </Badge>
                 </div>
 
-                {d.sales_orders?.customers?.address && (
-                  <p className="text-sm text-muted-foreground">
-                    {d.sales_orders.customers.address}
-                  </p>
-                )}
-                {d.sales_orders?.customers?.phone && (
-                  <p className="text-sm font-mono">{d.sales_orders.customers.phone}</p>
+                <div className="grid grid-cols-1 gap-1 text-sm">
+                  {d.sales_orders?.delivery_address && (
+                    <div>
+                      <span className="text-xs text-muted-foreground uppercase tracking-wide">Deliver to</span>
+                      <p>{d.sales_orders.delivery_address}</p>
+                    </div>
+                  )}
+                  {d.sales_orders?.customers?.phone && (
+                    <div>
+                      <span className="text-xs text-muted-foreground uppercase tracking-wide">Customer phone</span>
+                      <p className="font-mono">{d.sales_orders.customers.phone}</p>
+                    </div>
+                  )}
+                </div>
+
+                {(d.sales_orders as any)?.order_items && (d.sales_orders as any).order_items.length > 0 && (
+                  <div className="border-t pt-2">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Items</p>
+                    <ul className="text-sm space-y-0.5">
+                      {(d.sales_orders as any).order_items.map((item: any, i: number) => (
+                        <li key={i} className="flex justify-between">
+                          <span className="truncate flex-1">{item.products?.generic_name ?? 'Unknown'} {item.products?.strength ? `(${item.products.strength})` : ''}</span>
+                          <span className="font-mono ml-2 shrink-0">x{item.quantity}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
 
                 {d.delivery_instructions && (
@@ -143,7 +164,7 @@ export function DeliveryTable({ deliveries, isDriver, onAssign, onStatusUpdate, 
                     <Button
                       size="sm"
                       className="flex-1 min-w-0"
-                      onClick={() => onStatusUpdate(d.id, 'In Transit')}
+                      onClick={() => onStatusUpdate(d.id, 'In Transit', d.order_id)}
                       disabled={updating}
                     >
                       <Truck className="mr-1 h-4 w-4" />
@@ -155,7 +176,7 @@ export function DeliveryTable({ deliveries, isDriver, onAssign, onStatusUpdate, 
                       size="sm"
                       variant="default"
                       className="flex-1 min-w-0 bg-emerald-600 hover:bg-emerald-700"
-                      onClick={() => onStatusUpdate(d.id, 'Delivered')}
+                      onClick={() => onStatusUpdate(d.id, 'Delivered', d.order_id)}
                       disabled={updating}
                     >
                       <CheckCircle className="mr-1 h-4 w-4" />
@@ -169,7 +190,7 @@ export function DeliveryTable({ deliveries, isDriver, onAssign, onStatusUpdate, 
                       className="flex-1 min-w-0"
                       onClick={() => {
                         const reason = window.prompt('Reason for failure:');
-                        if (reason) onStatusUpdate(d.id, 'Failed', reason);
+                        if (reason) onStatusUpdate(d.id, 'Failed', d.order_id, reason);
                       }}
                       disabled={updating}
                     >
@@ -178,6 +199,13 @@ export function DeliveryTable({ deliveries, isDriver, onAssign, onStatusUpdate, 
                     </Button>
                   )}
                 </div>
+
+                {d.status === 'Delivered' && d.recipient_name && (
+                  <div className="border-t pt-2 text-sm">
+                    <p><span className="text-xs text-muted-foreground uppercase tracking-wide">Received by</span> {d.recipient_name}</p>
+                    {d.delivery_notes && <p className="text-xs text-muted-foreground mt-1 italic">"{d.delivery_notes}"</p>}
+                  </div>
+                )}
 
                 {d.failure_reason && (
                   <p className="text-xs text-destructive">Reason: {d.failure_reason}</p>
@@ -226,6 +254,11 @@ export function DeliveryTable({ deliveries, isDriver, onAssign, onStatusUpdate, 
               <TableHead>Order</TableHead>
               <TableHead>Customer</TableHead>
               <TableHead>Driver</TableHead>
+              <TableHead>Delivery Address</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead>Items</TableHead>
+              <TableHead>Recipient</TableHead>
+              <TableHead>Notes</TableHead>
               <TableHead>Assigned</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="w-24">Actions</TableHead>
@@ -234,7 +267,7 @@ export function DeliveryTable({ deliveries, isDriver, onAssign, onStatusUpdate, 
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={11} className="h-32 text-center text-muted-foreground">
                   No deliveries found.
                 </TableCell>
               </TableRow>
@@ -252,6 +285,30 @@ export function DeliveryTable({ deliveries, isDriver, onAssign, onStatusUpdate, 
                       <span className="text-muted-foreground italic">Unassigned</span>
                     )}
                   </TableCell>
+                  <TableCell className="text-sm max-w-40 truncate">
+                    {d.sales_orders?.delivery_address || (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-sm font-mono">
+                    {d.sales_orders?.customers?.phone || (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-xs max-w-48 truncate">
+                    {(d.sales_orders as any)?.order_items?.length > 0
+                      ? (d.sales_orders as any).order_items.map((item: any) =>
+                          `${item.products?.generic_name ?? 'Unknown'} x${item.quantity}`
+                        ).join(', ')
+                      : <span className="text-muted-foreground">—</span>
+                    }
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {d.recipient_name || <span className="text-muted-foreground">—</span>}
+                  </TableCell>
+                  <TableCell className="text-xs max-w-32 truncate">
+                    {d.delivery_notes || <span className="text-muted-foreground">—</span>}
+                  </TableCell>
                   <TableCell className="text-sm">
                     {formatDateTime(d.assigned_at ?? d.created_at ?? '')}
                   </TableCell>
@@ -268,7 +325,7 @@ export function DeliveryTable({ deliveries, isDriver, onAssign, onStatusUpdate, 
                         </Button>
                       )}
                       {canUpdate(d.status, 'Cancelled') && (
-                        <Button variant="ghost" size="icon" onClick={() => onStatusUpdate(d.id, 'Cancelled')}>
+                        <Button variant="ghost" size="icon" onClick={() => onStatusUpdate(d.id, 'Cancelled', d.order_id)}>
                           <X className="h-4 w-4 text-destructive" />
                         </Button>
                       )}

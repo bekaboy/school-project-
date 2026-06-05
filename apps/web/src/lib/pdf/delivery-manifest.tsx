@@ -7,7 +7,7 @@ interface ManifestItem {
   phone: string;
   driverName: string;
   status: string;
-  items: number;
+  items: string[];
 }
 
 interface ManifestData {
@@ -67,12 +67,12 @@ const styles = StyleSheet.create({
     fontSize: 9,
   },
   colOrder: { flex: 1.5 },
-  colCustomer: { flex: 2 },
-  colAddress: { flex: 2 },
-  colPhone: { flex: 1.2 },
-  colDriver: { flex: 1.5 },
-  colItems: { flex: 0.8, textAlign: 'right' },
-  colStatus: { flex: 1, textAlign: 'right' },
+  colCustomer: { flex: 1.5 },
+  colAddress: { flex: 1.5 },
+  colPhone: { flex: 1 },
+  colDriver: { flex: 1.2 },
+  colItems: { flex: 2 },
+  colStatus: { flex: 0.8, textAlign: 'right' },
   footer: {
     position: 'absolute',
     bottom: 40,
@@ -118,7 +118,7 @@ function ManifestDocument({ data }: { data: ManifestData }) {
               <Text style={styles.colAddress}>{d.address}</Text>
               <Text style={styles.colPhone}>{d.phone}</Text>
               <Text style={styles.colDriver}>{d.driverName}</Text>
-              <Text style={styles.colItems}>{d.items}</Text>
+              <Text style={[styles.colItems, { fontSize: 7 }]}>{d.items.join(', ') || '—'}</Text>
               <Text style={styles.colStatus}>{d.status}</Text>
             </View>
           ))}

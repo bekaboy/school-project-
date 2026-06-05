@@ -10,7 +10,7 @@ export function useDeliveries() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('deliveries')
-        .select('*, sales_orders(*, customers(*)), users!deliveries_driver_id_fkey(*)')
+        .select('*, sales_orders(*, customers(*), order_items(*, products(*))), users!deliveries_driver_id_fkey(*)')
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
@@ -24,7 +24,7 @@ export function useDelivery(id: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('deliveries')
-        .select('*, sales_orders(*), users!deliveries_driver_id_fkey(*)')
+        .select('*, sales_orders(*, customers(*), order_items(*, products(*))), users!deliveries_driver_id_fkey(*)')
         .eq('id', id)
         .single();
       if (error) throw error;
@@ -40,7 +40,7 @@ export function useDeliveriesByDriver(driverId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('deliveries')
-        .select('*, sales_orders(*, customers(*))')
+        .select('*, sales_orders(*, customers(*), order_items(*, products(*)))')
         .eq('driver_id', driverId)
         .order('created_at', { ascending: false });
       if (error) throw error;
@@ -56,7 +56,7 @@ export function useDeliveriesByStatus(status: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('deliveries')
-        .select('*, sales_orders(*, customers(*))')
+        .select('*, sales_orders(*, customers(*), order_items(*, products(*)))')
         .eq('status', status)
         .order('created_at', { ascending: false });
       if (error) throw error;
