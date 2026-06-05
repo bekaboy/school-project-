@@ -1,5 +1,3 @@
-import type { HandlerEvent, HandlerContext, HandlerResponse } from '@netlify/functions';
-
 interface CreateUserBody {
   email: string;
   password: string;
@@ -9,10 +7,7 @@ interface CreateUserBody {
   isActive: boolean;
 }
 
-export const handler = async (
-  event: HandlerEvent,
-  _context: HandlerContext,
-): Promise<HandlerResponse> => {
+export const handler = async (event: any, _context: any): Promise<any> => {
   const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
 
   if (event.httpMethod !== 'POST') {
