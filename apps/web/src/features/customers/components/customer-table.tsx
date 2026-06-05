@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import type { Tables } from '@pharma-ims/shared';
 import {
   Table,
@@ -12,29 +12,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { formatPhone } from '@/lib/utils/formatters';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 import { Pencil, Trash2, Search, FileText } from 'lucide-react';
+import { PAGE_SIZE } from '@/lib/utils/constants';
 
 interface CustomerTableProps {
   customers: Tables<'customers'>[];
+  totalCount: number;
+  page: number;
+  onPageChange: (page: number) => void;
+  search: string;
+  onSearchChange: (search: string) => void;
   onEdit: (customer: Tables<'customers'>) => void;
   onDelete: (id: string) => void;
   onViewOrders: (customer: Tables<'customers'>) => void;
 }
 
-export function CustomerTable({ customers, onEdit, onDelete, onViewOrders }: CustomerTableProps) {
-  const [search, setSearch] = useState('');
-
-  const filtered = useMemo(() => {
-    if (!search.trim()) return customers;
-    const q = search.toLowerCase();
-    return customers.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) ||
-        c.phone.includes(q) ||
-        (c.email ?? '').toLowerCase().includes(q) ||
-        (c.contact_person ?? '').toLowerCase().includes(q),
-    );
-  }, [customers, search]);
+export function CustomerTable({ customers, totalCount, page, onPageChange, search, onSearchChange, onEdit, onDelete, onViewOrders }: CustomerTableProps) {
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   return (
     <div className="space-y-4">
@@ -43,7 +38,7 @@ export function CustomerTable({ customers, onEdit, onDelete, onViewOrders }: Cus
         <Input
           placeholder="Search customers..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => onSearchChange(e.target.value)}
           className="pl-9"
         />
       </div>
@@ -63,14 +58,14 @@ export function CustomerTable({ customers, onEdit, onDelete, onViewOrders }: Cus
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.length === 0 ? (
+            {customers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
                   No customers found.
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((customer) => (
+              customers.map((customer) => (
                 <TableRow key={customer.id}>
                   <TableCell className="font-medium">{customer.name}</TableCell>
                   <TableCell className="text-muted-foreground">
@@ -105,9 +100,14 @@ export function CustomerTable({ customers, onEdit, onDelete, onViewOrders }: Cus
         </Table>
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        Showing {filtered.length} of {customers.length} customers
-      </p>
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        itemLabel="customers"
+        showing={customers.length}
+        total={totalCount}
+      />
     </div>
   );
 }

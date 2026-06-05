@@ -56,3 +56,14 @@ export const STATUS_COLORS: Record<string, string> = {
 export const EXPIRY_WARNING_DAYS = 90;
 export const SESSION_TIMEOUT_MINUTES = 30;
 export const PAGE_SIZE = 25;
+
+export function getLandingRoute(role: string | null): string {
+  const routes: Record<string, string> = {
+    'Sales Representative': '/sales',
+    'Finance Officer': '/payments',
+    'Store Manager': '/inventory',
+    'Delivery Driver': '/deliveries',
+    'Technical Manager/Owner': '/dashboard',
+  };
+  return routes[role ?? ''] ?? '/dashboard';
+}

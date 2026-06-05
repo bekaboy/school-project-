@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { mapToDb } from '@/lib/utils/mapping';
 import { useCreateBatch, useUpdateBatch, useCreateAuditLog, useProducts, useBatches } from '@/lib/supabase/queries';
+import { useToast } from '@/hooks/use-toast';
 import { useAuthStore } from '@/stores/auth-store';
 import type { Tables } from '@pharma-ims/shared';
 
@@ -79,9 +80,11 @@ function batchToForm(b: Tables<'batches'>): FormState {
 export function BatchForm({ open, onOpenChange, batch, products: externalProducts }: BatchFormProps) {
   const createBatch = useCreateBatch();
   const updateBatch = useUpdateBatch();
+  const { toast } = useToast();
   const auditLog = useCreateAuditLog();
   const currentUser = useAuthStore((s) => s.user);
-  const { data: fetchedProducts } = useProducts();
+  const { data: fetchedProductsRes } = useProducts();
+  const fetchedProducts = fetchedProductsRes?.data ?? [];
   const { data: existingBatches } = useBatches();
   const isEditing = !!batch;
   const [form, setForm] = useState<FormState>(initialForm);
@@ -134,24 +137,35 @@ export function BatchForm({ open, onOpenChange, batch, products: externalProduct
     const dbData = mapToDb(values) as Record<string, unknown>;
     delete (dbData as any).quarantine_reason;
 
-    if (isEditing && batch) {
-      await updateBatch.mutateAsync({ id: batch.id, ...dbData });
-    } else {
-      await createBatch.mutateAsync(dbData as never);
-    }
+    try {
+      if (isEditing && batch) {
+        await updateBatch.mutateAsync({ id: batch.id, ...dbData });
+        toast({ title: 'Batch updated', description: 'Batch information saved successfully.' });
+      } else {
+        await createBatch.mutateAsync(dbData as never);
+        toast({ title: 'Batch added', description: 'New stock batch has been created.' });
+      }
 
-    if (form.batchStatus === 'Quarantined' && form.quarantineReason.trim()) {
-      auditLog.mutate({
-        action: 'QUARANTINE',
-        entity_type: 'batch',
-        entity_id: batch?.id ?? 'new',
-        user_id: currentUser?.id ?? '',
-        details: { batch: form.batchNumber, reason: form.quarantineReason.trim() },
-        ip_address: '',
-      } as never);
-    }
+      if (form.batchStatus === 'Quarantined' && form.quarantineReason.trim()) {
+        auditLog.mutate({
+          action: 'QUARANTINE',
+          entity_type: 'batch',
+          entity_id: batch?.id ?? 'new',
+          user_id: currentUser?.id ?? '',
+          details: { batch: form.batchNumber, reason: form.quarantineReason.trim() },
+          ip_address: '',
+        } as never);
+      }
 
-    onOpenChange(false);
+      onOpenChange(false);
+    } catch (err) {
+      console.error('Failed to save batch:', err);
+      toast({
+        title: 'Error',
+        description: err instanceof Error ? err.message : 'Failed to save batch.',
+        variant: 'destructive',
+      });
+    }
   }
 
   const pending = createBatch.isPending || updateBatch.isPending;

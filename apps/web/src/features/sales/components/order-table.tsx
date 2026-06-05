@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -12,7 +12,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatCurrency, formatDate } from '@/lib/utils/formatters';
 import { useSort } from '@/lib/utils/use-sort';
-import { Eye, Search, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { PaginationControls } from '@/components/ui/pagination-controls';
+import { Eye, Search, XCircle } from 'lucide-react';
+import { PAGE_SIZE } from '@/lib/utils/constants';
 import type { Tables } from '@pharma-ims/shared';
 
 type OrderWithRelations = Tables<'sales_orders'> & {
@@ -20,23 +22,22 @@ type OrderWithRelations = Tables<'sales_orders'> & {
   users: Pick<Tables<'users'>, 'full_name'> | null;
   order_items: Array<{
     products: Pick<Tables<'products'>, 'generic_name' | 'strength'> | null;
+    batches: Pick<Tables<'batches'>, 'expiry_date'> | null;
     quantity: number;
   }> | null;
 };
 
-const PAGE_SIZE = 20;
-
-const statusColor: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  Draft: 'secondary',
-  'Proforma Generated': 'default',
-  'Pending Payment': 'outline',
-  Verified: 'default',
-  'Invoice Generated': 'default',
-  'In Transit': 'default',
-  Delivered: 'default',
-  Cancelled: 'destructive',
-  Failed: 'destructive',
-  Rescheduled: 'outline',
+const statusStyles: Record<string, string> = {
+  Draft: 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-100/80',
+  'Proforma Generated': 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100/80',
+  'Pending Payment': 'bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100/80',
+  Verified: 'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100/80',
+  'Invoice Generated': 'bg-purple-100 text-purple-700 border-purple-200 hover:bg-purple-100/80',
+  'In Transit': 'bg-cyan-100 text-cyan-700 border-cyan-200 hover:bg-cyan-100/80',
+  Delivered: 'bg-green-100 text-green-700 border-green-200 hover:bg-green-100/80',
+  Cancelled: 'bg-red-100 text-red-700 border-red-200 hover:bg-red-100/80',
+  Failed: 'bg-rose-100 text-rose-700 border-rose-200 hover:bg-rose-100/80',
+  Rescheduled: 'bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-100/80',
 };
 
 function SortableHead<T>({ label, sortKey, currentKey, direction, onClick, className }: {
@@ -56,29 +57,18 @@ function SortableHead<T>({ label, sortKey, currentKey, direction, onClick, class
 
 interface OrderTableProps {
   orders: OrderWithRelations[];
+  totalCount: number;
+  page: number;
+  onPageChange: (page: number) => void;
+  search: string;
+  onSearchChange: (search: string) => void;
   onCancel?: (id: string) => void;
   onView?: (order: OrderWithRelations) => void;
 }
 
-export function OrderTable({ orders, onCancel, onView }: OrderTableProps) {
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(0);
-
-  const filtered = useMemo(() => {
-    if (!search.trim()) return orders;
-    const q = search.toLowerCase();
-    return orders.filter(
-      (o) =>
-        o.order_id.toLowerCase().includes(q) ||
-        (o.customers?.name ?? '').toLowerCase().includes(q) ||
-        o.status.toLowerCase().includes(q),
-    );
-  }, [orders, search]);
-
-  const { sorted, sortKey, sortDir, getSortProps } = useSort(filtered, 'order_date' as keyof OrderWithRelations);
-  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages - 1);
-  const pageItems = sorted.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
+export function OrderTable({ orders, totalCount, page, onPageChange, search, onSearchChange, onCancel, onView }: OrderTableProps) {
+  const { sorted, sortKey, sortDir, getSortProps } = useSort(orders, 'order_date' as keyof OrderWithRelations);
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   return (
     <div className="space-y-4">
@@ -87,7 +77,7 @@ export function OrderTable({ orders, onCancel, onView }: OrderTableProps) {
         <Input
           placeholder="Search orders..."
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+          onChange={(e) => onSearchChange(e.target.value)}
           className="pl-9"
         />
       </div>
@@ -108,23 +98,26 @@ export function OrderTable({ orders, onCancel, onView }: OrderTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {pageItems.length === 0 ? (
+            {sorted.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={onCancel ? 9 : 8} className="h-32 text-center text-muted-foreground">
                   No sales orders found.
                 </TableCell>
               </TableRow>
             ) : (
-              pageItems.map((order) => (
+              sorted.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell className="font-mono text-xs">{order.order_id}</TableCell>
                   <TableCell className="font-medium">{order.customers?.name ?? 'Unknown'}</TableCell>
                   <TableCell className="text-muted-foreground">{order.users?.full_name ?? '—'}</TableCell>
-                  <TableCell className="text-xs max-w-48 truncate">
+                  <TableCell className="text-xs max-w-56 truncate">
                     {order.order_items?.length
-                      ? order.order_items.map((item) =>
-                          `${item.products?.generic_name ?? 'Unknown'} x${item.quantity}`
-                        ).join(', ')
+                      ? order.order_items.map((item) => {
+                          const exp = item.batches?.expiry_date;
+                          return exp
+                            ? `${item.products?.generic_name ?? 'Unknown'} x${item.quantity} (Exp: ${formatDate(exp)})`
+                            : `${item.products?.generic_name ?? 'Unknown'} x${item.quantity}`;
+                        }).join(', ')
                       : <span className="text-muted-foreground">—</span>
                     }
                   </TableCell>
@@ -133,7 +126,7 @@ export function OrderTable({ orders, onCancel, onView }: OrderTableProps) {
                     {formatCurrency(order.total)}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={statusColor[order.status] ?? 'secondary'}>
+                    <Badge className={statusStyles[order.status] ?? ''}>
                       {order.status}
                     </Badge>
                   </TableCell>
@@ -159,22 +152,14 @@ export function OrderTable({ orders, onCancel, onView }: OrderTableProps) {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Showing {pageItems.length} of {sorted.length} orders
-        </p>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled={safePage === 0} onClick={() => setPage(safePage - 1)}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            Page {safePage + 1} of {totalPages}
-          </span>
-          <Button variant="outline" size="sm" disabled={safePage >= totalPages - 1} onClick={() => setPage(safePage + 1)}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        itemLabel="orders"
+        showing={sorted.length}
+        total={totalCount}
+      />
     </div>
   );
 }

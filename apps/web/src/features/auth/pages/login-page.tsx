@@ -1,20 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/auth-store';
 import { useCreateAuditLog } from '@/lib/supabase/queries';
 import { useTranslation } from 'react-i18next';
-import { cn } from '@/lib/utils';
+import { cn, getLandingRoute } from '@/lib/utils';
 import { loginSchema } from '@pharma-ims/shared';
-import type { UserRole } from '@pharma-ims/shared';
-
-const DEV_USERS: { label: string; email: string; role: UserRole }[] = [
-  { label: '🔑 Admin', email: 'admin@pharma.com', role: 'Technical Manager/Owner' },
-  { label: '💰 Sales', email: 'sales@pharma.com', role: 'Sales Representative' },
-  { label: '📦 Store', email: 'store@pharma.com', role: 'Store Manager' },
-  { label: '💳 Finance', email: 'finance@pharma.com', role: 'Finance Officer' },
-  { label: '🚚 Driver', email: 'driver@pharma.com', role: 'Delivery Driver' },
-];
 
 export function LoginPage() {
   const { t } = useTranslation();
@@ -86,6 +77,19 @@ export function LoginPage() {
     setFailedAttempts(0);
 
     if (data.user) {
+      const { data: userRecord } = await supabase
+        .from('users')
+        .select('is_active')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (userRecord && !userRecord.is_active) {
+        await supabase.auth.signOut();
+        setError('Account has been deactivated. Contact an administrator.');
+        setLoading(false);
+        return;
+      }
+
       auditLog.mutate({
         action: 'LOGIN',
         entity_type: 'auth',
@@ -95,9 +99,10 @@ export function LoginPage() {
         ip_address: '',
       } as never);
 
+      const role = (data.user.user_metadata?.role as string) ?? null;
       setUser(data.user as unknown as any);
-      setRole((data.user.user_metadata?.role as string) ?? null);
-      navigate('/dashboard');
+      setRole(role);
+      navigate(getLandingRoute(role), { replace: true });
     }
   };
 
@@ -119,19 +124,9 @@ export function LoginPage() {
     }
   }
 
-  function devLogin(devEmail: string, devRole: UserRole) {
-    auditLog.mutate({
-      action: 'LOGIN',
-      entity_type: 'auth',
-      entity_id: 'dev-mode',
-      user_id: 'dev-mode',
-      details: { email: devEmail, method: 'dev-bypass' },
-      ip_address: '',
-    } as never);
-    setUser({ id: 'dev-mode', email: devEmail, user_metadata: { role: devRole } } as never);
-    setRole(devRole);
-    navigate('/dashboard');
-  }
+  useEffect(() => {
+    supabase.auth.signOut();
+  }, []);
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#fefaf2] p-6">
@@ -219,23 +214,11 @@ export function LoginPage() {
           )}
         </div>
 
-        <div className="rounded-2xl bg-white/70 p-8 shadow-xl shadow-black/5 backdrop-blur-xl">
-          <p className="mb-4 text-center text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Dev Quick Login
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            {DEV_USERS.map((u) => (
-              <button
-                key={u.email}
-                onClick={() => devLogin(u.email, u.role)}
-                className="rounded-lg border bg-white/60 px-4 py-3 text-sm font-medium backdrop-blur-sm hover:bg-accent transition-colors"
-              >
-                {u.label}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
+
+      <footer className="absolute bottom-4 left-0 right-0 text-center text-xs text-muted-foreground">
+        &copy; 2026 Era Med Pharmaceutical Wholesale PLC. All rights reserved.
+      </footer>
     </div>
   );
 }

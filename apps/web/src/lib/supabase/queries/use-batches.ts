@@ -8,18 +8,26 @@ export function useBatches() {
   return useQuery({
     queryKey,
     queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
-
-      await supabase
-        .from('batches')
-        .update({ batch_status: 'Expired' })
-        .eq('batch_status', 'Active')
-        .lt('expiry_date', today);
-
       const { data, error } = await supabase.from('batches').select('*, products(*)').order('expiry_date');
       if (error) throw error;
       return data;
     },
+  });
+}
+
+export function useMarkExpiredBatches() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const { error } = await supabase
+        .from('batches')
+        .update({ batch_status: 'Expired' })
+        .eq('batch_status', 'Active')
+        .lt('expiry_date', today);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['batches'] }),
   });
 }
 

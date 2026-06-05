@@ -17,7 +17,7 @@ export function AppLayout() {
 
   const checkSession = useCallback(() => {
     const user = useAuthStore.getState().user;
-    if (!user || user.id === 'dev-mode') return;
+    if (!user) return;
     const elapsed = Date.now() - useAuthStore.getState().lastActivity;
     if (elapsed > SESSION_TIMEOUT_MS) {
       useAuthStore.getState().setUser(null);

@@ -16,7 +16,8 @@ import {
 import { Download } from 'lucide-react';
 
 export function SalesReport() {
-  const { data: orders, isLoading } = useSalesOrders();
+  const { data: ordersRes, isLoading } = useSalesOrders();
+  const orders = ordersRes?.data ?? [];
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 

@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { mapToDb } from '@/lib/utils/mapping';
 import { useCreateProduct, useUpdateProduct } from '@/lib/supabase/queries';
 import { uploadProductImage } from '@/lib/supabase/storage';
+import { useToast } from '@/hooks/use-toast';
 import { ImagePlus, X } from 'lucide-react';
 import type { Tables } from '@pharma-ims/shared';
 
@@ -72,6 +73,7 @@ function productToForm(product: Tables<'products'>): FormState {
 export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
+  const { toast } = useToast();
   const isEditing = !!product;
   const [form, setForm] = useState<FormState>(initialForm);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
@@ -141,24 +143,35 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
 
     const dbData = mapToDb(values) as Record<string, unknown>;
 
-    if (isEditing && product) {
-      if (imageFile) {
-        dbData.image_url = await uploadProductImage(imageFile, product.id);
+    try {
+      if (isEditing && product) {
+        if (imageFile) {
+          dbData.image_url = await uploadProductImage(imageFile, product.id);
+        }
+        await updateProduct.mutateAsync({ id: product.id, ...dbData });
+        toast({ title: 'Product updated', description: 'Product information saved successfully.' });
+      } else {
+        const year = new Date().getFullYear();
+        const seq = String(Math.floor(Math.random() * 90000) + 10000);
+        const productId = `PROD-${year}-${seq}`;
+        const created = await createProduct.mutateAsync({ ...dbData, product_id: productId } as never);
+        if (imageFile && created) {
+          const url = await uploadProductImage(imageFile, created.id);
+          await updateProduct.mutateAsync({ id: created.id, image_url: url });
+        }
+        toast({ title: 'Product added', description: 'New product has been created.' });
       }
-      await updateProduct.mutateAsync({ id: product.id, ...dbData });
-    } else {
-      const year = new Date().getFullYear();
-      const seq = String(Math.floor(Math.random() * 90000) + 10000);
-      const productId = `PROD-${year}-${seq}`;
-      const created = await createProduct.mutateAsync({ ...dbData, product_id: productId } as never);
-      if (imageFile && created) {
-        const url = await uploadProductImage(imageFile, created.id);
-        await updateProduct.mutateAsync({ id: created.id, image_url: url });
-      }
+      setUploading(false);
+      onOpenChange(false);
+    } catch (err) {
+      setUploading(false);
+      console.error('Failed to save product:', err);
+      toast({
+        title: 'Error',
+        description: err instanceof Error ? err.message : 'Failed to save product.',
+        variant: 'destructive',
+      });
     }
-
-    setUploading(false);
-    onOpenChange(false);
   }
 
   const pending = createProduct.isPending || updateProduct.isPending;

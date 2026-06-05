@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -7,62 +7,51 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatCurrency, formatDateTime } from '@/lib/utils/formatters';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 import { Search, CheckCircle, XCircle } from 'lucide-react';
+import { PAGE_SIZE } from '@/lib/utils/constants';
 import type { Tables } from '@pharma-ims/shared';
 
 type PaymentWithOrder = Tables<'payments'> & {
   sales_orders: Tables<'sales_orders'> & {
     customers: Pick<Tables<'customers'>, 'name'> | null;
     order_items: Array<{
-      products: Pick<Tables<'products'>, 'generic_name' | 'strength'> | null;
+      products: Pick<Tables<'products'>, 'generic_name' | 'brand_name' | 'strength'> | null;
       quantity: number;
+      unit_price: number;
+      total_price: number;
     }> | null;
   };
 };
 
-const statusColor: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  Pending: 'secondary',
-  Uploaded: 'outline',
-  Verified: 'default',
-  Rejected: 'destructive',
-  Completed: 'default',
+const statusStyles: Record<string, string> = {
+  Pending: 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-100/80',
+  Uploaded: 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100/80',
+  Verified: 'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100/80',
+  Rejected: 'bg-red-100 text-red-700 border-red-200 hover:bg-red-100/80',
+  Completed: 'bg-green-100 text-green-700 border-green-200 hover:bg-green-100/80',
 };
 
 interface PaymentTableProps {
   payments: PaymentWithOrder[];
+  totalCount: number;
+  page: number;
+  onPageChange: (page: number) => void;
+  search: string;
+  onSearchChange: (search: string) => void;
+  statusFilter: string;
+  onStatusFilterChange: (status: string) => void;
   onVerify: (payment: PaymentWithOrder) => void;
   onReject: (payment: PaymentWithOrder) => void;
 }
 
-export function PaymentTable({ payments, onVerify, onReject }: PaymentTableProps) {
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+export function PaymentTable({ payments, totalCount, page, onPageChange, search, onSearchChange, statusFilter, onStatusFilterChange, onVerify, onReject }: PaymentTableProps) {
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
-  const statuses = useMemo(() => {
-    const set = new Set(payments.map((p) => p.status));
-    return ['', ...Array.from(set).sort()];
-  }, [payments]);
-
-  const filtered = useMemo(() => {
-    let result = payments;
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.id.toLowerCase().includes(q) ||
-          (p.sales_orders?.customers?.name ?? '').toLowerCase().includes(q) ||
-          p.status.toLowerCase().includes(q),
-      );
-    }
-    if (statusFilter) {
-      result = result.filter((p) => p.status === statusFilter);
-    }
-    return result;
-  }, [payments, search, statusFilter]);
+  const statuses = useMemo(() => ['', 'Pending', 'Uploaded', 'Verified', 'Rejected', 'Completed'], []);
 
   return (
     <div className="space-y-4">
@@ -72,7 +61,7 @@ export function PaymentTable({ payments, onVerify, onReject }: PaymentTableProps
           <Input
             placeholder="Search payments..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => onSearchChange(e.target.value)}
             className="pl-9"
           />
         </div>
@@ -82,7 +71,7 @@ export function PaymentTable({ payments, onVerify, onReject }: PaymentTableProps
               key={s}
               variant={statusFilter === s ? 'default' : 'outline'}
               size="sm"
-              onClick={() => setStatusFilter(s)}
+              onClick={() => onStatusFilterChange(s)}
             >
               {s || 'All'}
             </Button>
@@ -106,14 +95,14 @@ export function PaymentTable({ payments, onVerify, onReject }: PaymentTableProps
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.length === 0 ? (
+            {payments.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="h-32 text-center text-muted-foreground">
                   No payments found.
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((payment) => (
+              payments.map((payment) => (
                 <TableRow key={payment.id}>
                   <TableCell className="font-mono text-xs">
                     {payment.sales_orders?.order_id ?? '—'}
@@ -121,11 +110,20 @@ export function PaymentTable({ payments, onVerify, onReject }: PaymentTableProps
                   <TableCell className="font-medium">
                     {payment.sales_orders?.customers?.name ?? 'Unknown'}
                   </TableCell>
-                  <TableCell className="text-xs max-w-40 truncate">
+                  <TableCell className="text-xs max-w-56">
                     {payment.sales_orders?.order_items?.length
-                      ? payment.sales_orders.order_items.map((item) =>
-                          `${item.products?.generic_name ?? 'Unknown'} x${item.quantity}`
-                        ).join(', ')
+                      ? <div className="space-y-0.5">
+                          {payment.sales_orders.order_items.map((item, i) => (
+                            <div key={i} className="flex justify-between gap-2">
+                              <span className="truncate">
+                                {item.products?.generic_name ?? 'Unknown'}{item.products?.brand_name ? ` (${item.products.brand_name})` : ''}
+                              </span>
+                              <span className="font-mono shrink-0">
+                                x{item.quantity} @ {formatCurrency(item.unit_price)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       : <span className="text-muted-foreground">—</span>
                     }
                   </TableCell>
@@ -136,9 +134,9 @@ export function PaymentTable({ payments, onVerify, onReject }: PaymentTableProps
                     {formatDateTime(payment.created_at ?? '')}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={statusColor[payment.status] ?? 'secondary'}>
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${statusStyles[payment.status] ?? 'bg-secondary text-secondary-foreground'}`}>
                       {payment.status}
-                    </Badge>
+                    </span>
                   </TableCell>
                   <TableCell>
                     <span className="font-mono text-xs">
@@ -195,9 +193,14 @@ export function PaymentTable({ payments, onVerify, onReject }: PaymentTableProps
         </Table>
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        Showing {filtered.length} of {payments.length} payments
-      </p>
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        itemLabel="payments"
+        showing={payments.length}
+        total={totalCount}
+      />
     </div>
   );
 }

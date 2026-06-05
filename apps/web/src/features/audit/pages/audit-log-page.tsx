@@ -20,8 +20,8 @@ import { Badge } from '@/components/ui/badge';
 import { Search } from 'lucide-react';
 import { formatDateTime } from '@/lib/utils/formatters';
 
-const ENTITY_TYPES = ['', 'order', 'payment', 'invoice', 'delivery', 'user', 'product', 'batch', 'customer', 'auth'] as const;
-const ACTIONS = ['', 'created', 'updated', 'deleted', 'verified', 'rejected', 'assigned', 'generated', 'status_change', 'STOCK_ADJUST', 'LOGIN', 'ACCOUNT_LOCKOUT', 'QUARANTINE'] as const;
+const ENTITY_TYPES = ['order', 'payment', 'invoice', 'delivery', 'user', 'product', 'batch', 'customer', 'auth'] as const;
+const ACTIONS = ['created', 'updated', 'deleted', 'verified', 'rejected', 'assigned', 'generated', 'status_change', 'STOCK_ADJUST', 'LOGIN', 'ACCOUNT_LOCKOUT', 'QUARANTINE'] as const;
 
 function entityBadge(type: string) {
   const colors: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
@@ -67,24 +67,24 @@ interface AuditLogRow {
   created_at: string | null;
   ip_address: string | null;
   user_id: string | null;
-  users: { full_name: string } | null;
+  user_name: string | null;
 }
 
 export function AuditLogPage() {
   const { data: logs, isLoading } = useAuditLogs();
-  const [entityFilter, setEntityFilter] = useState('');
-  const [actionFilter, setActionFilter] = useState('');
+  const [entityFilter, setEntityFilter] = useState('_all');
+  const [actionFilter, setActionFilter] = useState('_all');
   const [search, setSearch] = useState('');
 
   const filtered = useMemo(() => {
     if (!logs) return [];
     const typed = logs as AuditLogRow[];
     return typed.filter((l) => {
-      if (entityFilter && l.entity_type !== entityFilter) return false;
-      if (actionFilter && l.action !== actionFilter) return false;
+      if (entityFilter !== '_all' && l.entity_type !== entityFilter) return false;
+      if (actionFilter !== '_all' && l.action !== actionFilter) return false;
       if (search.trim()) {
         const q = search.toLowerCase();
-        const user = l.users?.full_name?.toLowerCase() ?? '';
+        const user = l.user_name?.toLowerCase() ?? '';
         return l.action.includes(q) || l.entity_type.includes(q) || l.entity_id.toLowerCase().includes(q) || user.includes(q);
       }
       return true;
@@ -112,8 +112,8 @@ export function AuditLogPage() {
             <SelectValue placeholder="Entity" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Entities</SelectItem>
-            {ENTITY_TYPES.filter(Boolean).map((t) => (
+            <SelectItem value="_all">All Entities</SelectItem>
+            {ENTITY_TYPES.map((t) => (
               <SelectItem key={t} value={t}>{t}</SelectItem>
             ))}
           </SelectContent>
@@ -123,8 +123,8 @@ export function AuditLogPage() {
             <SelectValue placeholder="Action" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Actions</SelectItem>
-            {ACTIONS.filter(Boolean).map((a) => (
+            <SelectItem value="_all">All Actions</SelectItem>
+            {ACTIONS.map((a) => (
               <SelectItem key={a} value={a}>{a.replace(/_/g, ' ')}</SelectItem>
             ))}
           </SelectContent>
@@ -152,7 +152,7 @@ export function AuditLogPage() {
               filtered.map((log) => (
                 <TableRow key={log.id}>
                   <TableCell className="text-sm whitespace-nowrap">{formatDateTime(log.created_at ?? '')}</TableCell>
-                  <TableCell className="text-sm">{log.users?.full_name ?? 'System'}</TableCell>
+                  <TableCell className="text-sm">{log.user_name ?? 'System'}</TableCell>
                   <TableCell>{entityBadge(log.entity_type)}</TableCell>
                   <TableCell>{actionBadge(log.action)}</TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">{log.entity_id.slice(0, 8)}...</TableCell>

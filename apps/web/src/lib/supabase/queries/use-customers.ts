@@ -4,14 +4,27 @@ import type { Tables, TablesInsert, TablesUpdate } from '@pharma-ims/shared';
 
 const queryKey = ['customers'] as const;
 
-export function useCustomers() {
+export function useCustomers(page?: number, pageSize?: number, search?: string) {
   return useQuery({
-    queryKey,
+    queryKey: [...queryKey, { page, pageSize, search }],
     queryFn: async () => {
-      const { data, error } = await supabase.from('customers').select('*').order('name');
+      let query = supabase.from('customers').select('*', { count: 'exact' });
+      if (search) {
+        const q = search.toLowerCase();
+        query = query.or(
+          `name.ilike.%${q}%,phone.ilike.%${q}%,email.ilike.%${q}%,contact_person.ilike.%${q}%`
+        );
+      }
+      query = query.order('name');
+      if (page != null && pageSize) {
+        const from = page * pageSize;
+        query = query.range(from, from + pageSize - 1);
+      }
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data as Tables<'customers'>[];
+      return { data: data as Tables<'customers'>[], count: count ?? 0 };
     },
+    placeholderData: (prev) => prev,
   });
 }
 

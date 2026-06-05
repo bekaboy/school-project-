@@ -5,10 +5,15 @@ import { CustomerForm } from '@/features/customers/components/customer-form';
 import { OrderHistoryDialog } from '@/features/customers/components/order-history-dialog';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { PAGE_SIZE } from '@/lib/utils/constants';
 import type { Tables } from '@pharma-ims/shared';
 
 export function CustomerPage() {
-  const { data: customers, isLoading } = useCustomers();
+  const [page, setPage] = useState(0);
+  const [search, setSearch] = useState('');
+  const { data: result, isLoading } = useCustomers(page, PAGE_SIZE, search);
+  const customers = result?.data ?? [];
+  const totalCount = result?.count ?? 0;
   const deleteCustomer = useDeleteCustomer();
   const [formOpen, setFormOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Tables<'customers'> | null>(null);
@@ -52,7 +57,12 @@ export function CustomerPage() {
       </div>
 
       <CustomerTable
-        customers={customers ?? []}
+        customers={customers}
+        totalCount={totalCount}
+        page={page}
+        onPageChange={setPage}
+        search={search}
+        onSearchChange={(s) => { setSearch(s); setPage(0); }}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onViewOrders={handleViewOrders}

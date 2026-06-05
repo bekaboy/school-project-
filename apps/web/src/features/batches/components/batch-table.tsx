@@ -8,12 +8,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatDate } from '@/lib/utils/formatters';
 import { useSort } from '@/lib/utils/use-sort';
-import { Pencil, Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { PaginationControls } from '@/components/ui/pagination-controls';
+import { Pencil, Trash2, Search } from 'lucide-react';
 
 type BatchWithProduct = Tables<'batches'> & {
   products: Pick<Tables<'products'>, 'generic_name' | 'brand_name'> | null;
@@ -74,13 +74,14 @@ export function BatchTable({ batches, onEdit, onDelete }: BatchTableProps) {
     return 'ok';
   }
 
+  const statusStyles: Record<string, string> = {
+    Active: 'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100/80',
+    Expired: 'bg-red-100 text-red-700 border-red-200 hover:bg-red-100/80',
+    Quarantined: 'bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-100/80',
+  };
+
   function getStatusBadge(status: string | null) {
-    const variant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-      Active: 'default',
-      Expired: 'destructive',
-      Quarantined: 'outline',
-    };
-    return variant[status ?? ''] ?? 'secondary';
+    return statusStyles[status ?? ''] ?? 'bg-secondary text-secondary-foreground';
   }
 
   return (
@@ -168,9 +169,9 @@ export function BatchTable({ batches, onEdit, onDelete }: BatchTableProps) {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={getStatusBadge(batch.batch_status)}>
-                        {batch.batch_status ?? 'Unknown'}
-                      </Badge>
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(batch.batch_status)}`}>
+                      {batch.batch_status ?? 'Unknown'}
+                    </span>
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
@@ -190,22 +191,14 @@ export function BatchTable({ batches, onEdit, onDelete }: BatchTableProps) {
         </Table>
       </div>
 
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Showing {pageItems.length} of {sorted.length} batches
-        </p>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled={safePage === 0} onClick={() => setPage(safePage - 1)}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            Page {safePage + 1} of {totalPages}
-          </span>
-          <Button variant="outline" size="sm" disabled={safePage >= totalPages - 1} onClick={() => setPage(safePage + 1)}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      <PaginationControls
+        page={safePage}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        itemLabel="batches"
+        showing={pageItems.length}
+        total={sorted.length}
+      />
     </div>
   );
 }

@@ -8,13 +8,19 @@ export function useAuditLogs() {
   return useQuery({
     queryKey,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('audit_logs')
-        .select('*, users(*)')
-        .order('created_at', { ascending: false })
-        .limit(100);
-      if (error) throw error;
-      return data;
+      const [auditRes, usersRes] = await Promise.all([
+        supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(100),
+        supabase.from('users').select('id, full_name'),
+      ]);
+      if (auditRes.error) throw auditRes.error;
+      if (usersRes.error) throw usersRes.error;
+
+      const nameByUserId = new Map(usersRes.data.map((u) => [u.id, u.full_name]));
+
+      return auditRes.data.map((log) => ({
+        ...log,
+        user_name: log.user_id ? (nameByUserId.get(log.user_id) ?? null) : null,
+      }));
     },
   });
 }

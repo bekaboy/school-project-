@@ -4,17 +4,32 @@ import type { Tables, TablesInsert, TablesUpdate } from '@pharma-ims/shared';
 
 const queryKey = ['payments'] as const;
 
-export function usePayments() {
+export function usePayments(page?: number, pageSize?: number, search?: string, status?: string) {
   return useQuery({
-    queryKey,
+    queryKey: [...queryKey, { page, pageSize, search, status }],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('payments')
-        .select('*, sales_orders!inner(*, customers(*), order_items(*, products(*)))')
+        .select('*, sales_orders!inner(*, customers(*), order_items(*, products(*)))', { count: 'exact' })
         .order('created_at', { ascending: false });
+      if (search) {
+        const q = search.toLowerCase();
+        query = query.or(
+          `status.ilike.%${q}%,sales_orders.order_id.ilike.%${q}%`
+        );
+      }
+      if (status) {
+        query = query.eq('status', status);
+      }
+      if (page != null && pageSize) {
+        const from = page * pageSize;
+        query = query.range(from, from + pageSize - 1);
+      }
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data;
+      return { data: data ?? [], count: count ?? 0 };
     },
+    placeholderData: (prev) => prev,
   });
 }
 

@@ -7,7 +7,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -31,13 +30,13 @@ type DeliveryWithRelations = Tables<'deliveries'> & {
   users: Pick<Tables<'users'>, 'full_name'> | null;
 };
 
-const statusColor: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  Assigned: 'secondary',
-  'In Transit': 'default',
-  Delivered: 'default',
-  Failed: 'destructive',
-  Rescheduled: 'outline',
-  Cancelled: 'destructive',
+const statusStyles: Record<string, string> = {
+  Assigned: 'bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100/80',
+  'In Transit': 'bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100/80',
+  Delivered: 'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100/80',
+  Failed: 'bg-red-100 text-red-700 border-red-200 hover:bg-red-100/80',
+  Rescheduled: 'bg-orange-100 text-orange-700 border-orange-200 hover:bg-orange-100/80',
+  Cancelled: 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-100/80',
 };
 
 interface DeliveryTableProps {
@@ -119,9 +118,9 @@ export function DeliveryTable({ deliveries, isDriver, onAssign, onStatusUpdate, 
                       Order: {d.sales_orders?.order_id ?? '—'}
                     </p>
                   </div>
-                  <Badge variant={statusColor[d.status] ?? 'secondary'} className="text-xs">
+                  <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${statusStyles[d.status] ?? 'bg-secondary text-secondary-foreground'}`}>
                     {d.status}
-                  </Badge>
+                  </span>
                 </div>
 
                 <div className="grid grid-cols-1 gap-1 text-sm">
@@ -313,9 +312,9 @@ export function DeliveryTable({ deliveries, isDriver, onAssign, onStatusUpdate, 
                     {formatDateTime(d.assigned_at ?? d.created_at ?? '')}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={statusColor[d.status] ?? 'secondary'}>
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${statusStyles[d.status] ?? 'bg-secondary text-secondary-foreground'}`}>
                       {d.status}
-                    </Badge>
+                    </span>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">

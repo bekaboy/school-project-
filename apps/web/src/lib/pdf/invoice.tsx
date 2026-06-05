@@ -1,165 +1,173 @@
-import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer';
+import { Document, Page, Text, View, Image, StyleSheet, pdf } from '@react-pdf/renderer';
 
-const green = '#1a6b3c';
-const maroon = '#7b1f1f';
-const stampBlue = '#1a5276';
+const colors = {
+  primary: '#1a4731',
+  secondary: '#b8860b',
+  text: '#1a1a1a',
+  muted: '#6b7280',
+  border: '#d1d5db',
+  background: '#f8f6f0',
+  headerBg: '#1a4731',
+  headerText: '#ffffff',
+  accent: '#c41e3a',
+};
 
 const styles = StyleSheet.create({
   page: {
-    padding: 36,
+    padding: 48,
     fontSize: 9,
     fontFamily: 'Helvetica',
+    backgroundColor: '#ffffff',
   },
   headerBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottomWidth: 3,
-    borderBottomColor: green,
-    paddingBottom: 12,
-    marginBottom: 16,
+    backgroundColor: colors.headerBg,
+    marginBottom: 28,
+    padding: 24,
+    paddingTop: 20,
+    paddingBottom: 20,
   },
-  companyInfo: {
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 55,
+    height: 55,
+    marginRight: 16,
+  },
+  headerContent: {
     flex: 1,
   },
   companyName: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: green,
-  },
-  companyNameAm: {
-    fontSize: 9,
-    color: maroon,
-    marginTop: 2,
-  },
-  titleSection: {
-    alignItems: 'flex-end',
-  },
-  invoiceTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: maroon,
+    fontWeight: 700,
+    color: colors.headerText,
+    letterSpacing: 1,
   },
-  invoiceTitleAm: {
-    fontSize: 8,
-    color: '#6b7280',
-    marginTop: 2,
-  },
-  invoiceMeta: {
+  headerRight: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
-    padding: 10,
-    backgroundColor: '#f8f5f0',
-    borderRadius: 4,
+    alignItems: 'flex-end',
+    marginTop: 6,
   },
-  metaCol: {
+  docLabel: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: colors.secondary,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+  },
+  infoGrid: {
+    flexDirection: 'row',
+    marginBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    paddingBottom: 16,
+  },
+  infoCol: {
     flex: 1,
   },
-  metaLabel: {
+  infoLabel: {
     fontSize: 7,
-    color: '#9ca3af',
+    color: colors.muted,
     textTransform: 'uppercase',
+    letterSpacing: 1,
     marginBottom: 2,
   },
-  metaValue: {
+  infoValue: {
     fontSize: 9,
-    marginBottom: 4,
+    color: colors.text,
+    marginBottom: 3,
   },
   table: {
-    marginBottom: 16,
+    marginBottom: 24,
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: green,
+    backgroundColor: colors.background,
     paddingVertical: 6,
     paddingHorizontal: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: colors.primary,
   },
   tableHeaderText: {
-    color: '#ffffff',
-    fontSize: 8,
-    fontWeight: 'bold',
+    fontSize: 7,
+    fontWeight: 700,
+    color: colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   tableRow: {
     flexDirection: 'row',
     paddingVertical: 5,
     paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: '#f0ece4',
   },
   tableRowAlt: {
     flexDirection: 'row',
     paddingVertical: 5,
     paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    backgroundColor: '#f9fafb',
+    borderBottomColor: '#f0ece4',
+    backgroundColor: '#fcfaf7',
   },
-  colNum: { width: '8%' },
-  colDesc: { width: '42%' },
-  colQty: { width: '15%', textAlign: 'right' },
-  colPrice: { width: '17%', textAlign: 'right' },
-  colTotal: { width: '18%', textAlign: 'right' },
-  totalsSection: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: 16,
-  },
-  totalsBox: {
+  colNo: { flex: 0.4, textAlign: 'center' },
+  colDesc: { flex: 2.6 },
+  colExpiry: { flex: 1, textAlign: 'center' },
+  colQty: { flex: 0.7, textAlign: 'right' },
+  colPrice: { flex: 1, textAlign: 'right' },
+  colTotal: { flex: 1, textAlign: 'right' },
+  totalsContainer: {
+    marginLeft: 'auto',
     width: '45%',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
+    marginBottom: 16,
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 4,
-    paddingHorizontal: 10,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+  },
+  totalBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-  },
-  totalRowLabel: {
-    fontSize: 9,
-    color: '#374151',
-  },
-  totalRowValue: {
-    fontSize: 9,
-    fontFamily: 'Helvetica',
+    borderBottomColor: colors.border,
   },
   grandTotalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 6,
-    paddingHorizontal: 10,
-    backgroundColor: green,
+    paddingHorizontal: 8,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    marginTop: 4,
   },
-  grandTotalLabel: {
+  grandTotalText: {
     fontSize: 10,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  grandTotalValue: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#ffffff',
+    fontWeight: 700,
+    color: colors.primary,
   },
   amountInWords: {
     marginBottom: 16,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: colors.border,
     borderRadius: 4,
-    backgroundColor: '#f8f5f0',
+    backgroundColor: colors.background,
   },
   amountLabel: {
     fontSize: 8,
     fontWeight: 'bold',
-    color: maroon,
+    color: colors.accent,
     marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   amountText: {
     fontSize: 9,
     lineHeight: 1.5,
+    color: colors.text,
   },
   vatSection: {
     flexDirection: 'row',
@@ -167,7 +175,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: colors.border,
     borderRadius: 4,
   },
   vatItem: {
@@ -190,11 +198,12 @@ const styles = StyleSheet.create({
   },
   vatLabel: {
     fontSize: 8,
+    color: colors.text,
   },
   stampSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 24,
     paddingTop: 8,
   },
   signatureLine: {
@@ -209,43 +218,66 @@ const styles = StyleSheet.create({
     height: 90,
     borderRadius: 45,
     borderWidth: 2.5,
-    borderColor: stampBlue,
+    borderColor: '#1a5276',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f0f7fc',
   },
+  stampInner: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    color: '#1a5276',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
   stampText: {
     fontSize: 6,
-    color: stampBlue,
+    color: '#1a5276',
     textAlign: 'center',
     lineHeight: 1.4,
     paddingHorizontal: 4,
   },
-  stampInner: {
+  taxInfo: {
     fontSize: 7,
-    fontWeight: 'bold',
-    color: stampBlue,
+    color: colors.muted,
+    marginBottom: 4,
     textAlign: 'center',
-    marginBottom: 2,
   },
   footer: {
     position: 'absolute',
-    bottom: 24,
-    left: 36,
-    right: 36,
-    borderTopWidth: 2,
-    borderTopColor: maroon,
-    paddingTop: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    fontSize: 7,
-    color: '#6b7280',
+    bottom: 32,
+    left: 48,
+    right: 48,
+    borderTopWidth: 1,
+    borderTopColor: colors.primary,
+    paddingTop: 10,
   },
-  taxInfo: {
-    fontSize: 7,
-    color: '#6b7280',
-    marginTop: 4,
+  footerTitle: {
+    fontSize: 9,
+    fontWeight: 700,
+    color: colors.primary,
     textAlign: 'center',
+    marginBottom: 6,
+    letterSpacing: 0.5,
+  },
+  footerRow: {
+    flexDirection: 'row',
+  },
+  footerCol: {
+    flex: 1,
+  },
+  footerLabel: {
+    fontSize: 7,
+    fontWeight: 700,
+    color: colors.text,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 3,
+  },
+  footerText: {
+    fontSize: 6.5,
+    color: colors.muted,
+    lineHeight: 1.6,
   },
 });
 
@@ -254,6 +286,7 @@ interface InvoiceItem {
   quantity: number;
   unitPrice: number;
   total: number;
+  expiryDate?: string;
 }
 
 interface InvoiceData {
@@ -270,8 +303,8 @@ interface InvoiceData {
   total: number;
 }
 
-function numberToWordsEthiopian(amount: number): string {
-  if (amount === 0) return 'Zero ETB only / ዜሮ ብር ብቻ';
+function numberToWords(amount: number): string {
+  if (amount === 0) return 'Zero ETB only';
 
   const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
     'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
@@ -312,7 +345,7 @@ function numberToWordsEthiopian(amount: number): string {
   words += ' ETB';
 
   if (cents > 0) {
-    words += ` and ${convertBelowThousand(cents)} Cents`;
+    words += ' and ' + convertBelowThousand(cents) + ' Cents';
   }
 
   words += ' only';
@@ -320,125 +353,149 @@ function numberToWordsEthiopian(amount: number): string {
   return words;
 }
 
+function getBaseUrl(): string {
+  if (typeof window !== 'undefined') return window.location.origin;
+  return '';
+}
+
 function InvoiceDocument({ data }: { data: InvoiceData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.headerBar}>
-          <View style={styles.companyInfo}>
-            <Text style={styles.companyName}>ERA MED PHARMACEUTICAL WHOLESALE PLC</Text>
-            <Text style={styles.companyNameAm}>የኢራ ሜድ ፋርማሲዩቲካል ኅብረት ሥርዓት የጅምላ ሽያጭ ኃላፊነቱ የተወሰነ የግል ማኅበር</Text>
-          </View>
-          <View style={styles.titleSection}>
-            <Text style={styles.invoiceTitle}>INVOICE</Text>
-            <Text style={styles.invoiceTitleAm}>ደረሰኝ / ኢንቮይስ</Text>
+          <View style={styles.headerRow}>
+            <Image src={`${getBaseUrl()}/logo.png`} style={styles.logo} />
+            <View style={styles.headerContent}>
+              <Text style={styles.companyName}>ERA MED PHARMACEUTICAL WHOLESALE PLC</Text>
+              <View style={styles.headerRight}>
+                <Text style={styles.docLabel}>Invoice</Text>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={[styles.infoValue, { color: colors.headerText, fontSize: 11, fontWeight: 700 }]}>
+                    {data.invoiceNumber}
+                  </Text>
+                  <Text style={[styles.infoValue, { color: '#a3b8a8', fontSize: 8 }]}>
+                    {data.date}
+                  </Text>
+                </View>
+              </View>
+            </View>
           </View>
         </View>
 
-        <View style={styles.invoiceMeta}>
-          <View style={styles.metaCol}>
-            <Text style={styles.metaLabel}>Invoice No</Text>
-            <Text style={styles.metaValue}>{data.invoiceNumber}</Text>
-            <Text style={styles.metaLabel}>Order No</Text>
-            <Text style={styles.metaValue}>{data.orderId}</Text>
+        <View style={styles.infoGrid}>
+          <View style={styles.infoCol}>
+            <Text style={styles.infoLabel}>Bill To</Text>
+            <Text style={styles.infoValue}>{data.customerName}</Text>
+            <Text style={styles.infoValue}>{data.customerAddress}</Text>
+            <Text style={styles.infoValue}>{data.customerPhone}</Text>
+            {data.customerTaxId && (
+              <Text style={styles.infoValue}>Tax ID: {data.customerTaxId}</Text>
+            )}
           </View>
-          <View style={styles.metaCol}>
-            <Text style={styles.metaLabel}>Date / ቀን</Text>
-            <Text style={styles.metaValue}>{data.date}</Text>
-            <Text style={styles.metaLabel}>Tax ID / ተ.እ.ታ ቁጥር</Text>
-            <Text style={styles.metaValue}>{data.customerTaxId || '—'}</Text>
-          </View>
-          <View style={styles.metaCol}>
-            <Text style={styles.metaLabel}>Customer / ደንበኛ</Text>
-            <Text style={styles.metaValue}>{data.customerName}</Text>
-            <Text style={styles.metaValue}>{data.customerAddress}</Text>
-            <Text style={styles.metaValue}>{data.customerPhone}</Text>
+          <View style={styles.infoCol}>
+            <Text style={styles.infoLabel}>Order Reference</Text>
+            <Text style={styles.infoValue}>{data.orderId}</Text>
+            <Text style={[styles.infoLabel, { marginTop: 8 }]}>Invoice Date</Text>
+            <Text style={styles.infoValue}>{data.date}</Text>
           </View>
         </View>
 
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderText, styles.colNum]}>#</Text>
-            <Text style={[styles.tableHeaderText, styles.colDesc]}>Description / መግለጫ</Text>
-            <Text style={[styles.tableHeaderText, styles.colQty]}>Qty / ብዛት</Text>
-            <Text style={[styles.tableHeaderText, styles.colPrice]}>Price / ዋጋ</Text>
-            <Text style={[styles.tableHeaderText, styles.colTotal]}>Total / ድምር</Text>
+            <Text style={[styles.tableHeaderText, styles.colNo]}>#</Text>
+            <Text style={[styles.tableHeaderText, styles.colDesc]}>Description</Text>
+            <Text style={[styles.tableHeaderText, styles.colExpiry]}>Expiry</Text>
+            <Text style={[styles.tableHeaderText, styles.colQty]}>Qty</Text>
+            <Text style={[styles.tableHeaderText, styles.colPrice]}>Unit Price</Text>
+            <Text style={[styles.tableHeaderText, styles.colTotal]}>Total</Text>
           </View>
           {data.items.map((item, i) => (
             <View style={i % 2 === 0 ? styles.tableRow : styles.tableRowAlt} key={i}>
-              <Text style={[styles.colNum, { fontSize: 8 }]}>{i + 1}</Text>
-              <Text style={[styles.colDesc, { fontSize: 8 }]}>{item.description}</Text>
-              <Text style={[styles.colQty, { fontSize: 8 }]}>{item.quantity}</Text>
-              <Text style={[styles.colPrice, { fontSize: 8 }]}>{fmt(item.unitPrice)}</Text>
-              <Text style={[styles.colTotal, { fontSize: 8 }]}>{fmt(item.total)}</Text>
+              <Text style={styles.colNo}>{i + 1}</Text>
+              <Text style={styles.colDesc}>{item.description}</Text>
+              <Text style={styles.colExpiry}>{item.expiryDate ?? '—'}</Text>
+              <Text style={styles.colQty}>{item.quantity}</Text>
+              <Text style={styles.colPrice}>{fmt(item.unitPrice)}</Text>
+              <Text style={styles.colTotal}>{fmt(item.total)}</Text>
             </View>
           ))}
         </View>
 
-        <View style={styles.totalsSection}>
-          <View style={styles.totalsBox}>
-            <View style={styles.totalRow}>
-              <Text style={styles.totalRowLabel}>Subtotal / ድምር</Text>
-              <Text style={styles.totalRowValue}>{fmt(data.subtotal)}</Text>
-            </View>
-            <View style={styles.totalRow}>
-              <Text style={styles.totalRowLabel}>VAT (15%) / ተ.እ.ታ (15%)</Text>
-              <Text style={styles.totalRowValue}>{fmt(data.tax)}</Text>
-            </View>
-            <View style={styles.grandTotalRow}>
-              <Text style={styles.grandTotalLabel}>Total / ጠቅላላ</Text>
-              <Text style={styles.grandTotalValue}>{fmt(data.total)}</Text>
-            </View>
+        <View style={styles.totalsContainer}>
+          <View style={[styles.totalRow, styles.totalBorder]}>
+            <Text>Subtotal</Text>
+            <Text>{fmt(data.subtotal)}</Text>
+          </View>
+          <View style={[styles.totalRow, styles.totalBorder]}>
+            <Text>VAT (15%)</Text>
+            <Text>{fmt(data.tax)}</Text>
+          </View>
+          <View style={styles.grandTotalRow}>
+            <Text style={styles.grandTotalText}>Total Due</Text>
+            <Text style={styles.grandTotalText}>{fmt(data.total)}</Text>
           </View>
         </View>
 
         <View style={styles.amountInWords}>
-          <Text style={styles.amountLabel}>Amount in Words / በፊደል የተጻፈ መጠን</Text>
-          <Text style={styles.amountText}>{numberToWordsEthiopian(data.total)}</Text>
+          <Text style={styles.amountLabel}>Amount in Words</Text>
+          <Text style={styles.amountText}>{numberToWords(data.total)}</Text>
         </View>
 
         <View style={styles.vatSection}>
           <View style={styles.vatItem}>
             <View style={data.tax > 0 ? styles.vatBoxChecked : styles.vatBox} />
-            <Text style={styles.vatLabel}>VAT Inclusive / ተ.እ.ታ ጨምሮ</Text>
+            <Text style={styles.vatLabel}>VAT Inclusive</Text>
           </View>
           <View style={styles.vatItem}>
             <View style={data.tax === 0 ? styles.vatBoxChecked : styles.vatBox} />
-            <Text style={styles.vatLabel}>VAT Exclusive / ተ.እ.ታ ሳይጨምር</Text>
+            <Text style={styles.vatLabel}>VAT Exclusive</Text>
           </View>
         </View>
 
         <View style={styles.stampSection}>
           <View>
-            <Text style={{ fontSize: 8, color: '#374151', marginBottom: 2 }}>Prepared by / አዘጋጅ</Text>
+            <Text style={{ fontSize: 8, color: '#374151', marginBottom: 2 }}>Prepared by</Text>
             <View style={styles.signatureLine} />
-            <Text style={{ fontSize: 8, color: '#374151', marginTop: 2 }}>Authorized by / ያፀደቀው</Text>
-            <View style={[styles.signatureLine, { marginTop: 20 }]} />
+            <Text style={{ fontSize: 8, color: '#374151', marginTop: 12 }}>Authorized by</Text>
+            <View style={[styles.signatureLine, { marginTop: 16 }]} />
           </View>
           <View style={styles.stampPlaceholder}>
             <Text style={styles.stampInner}>ERA MED</Text>
             <Text style={styles.stampText}>Pharmaceutical Wholesale PLC</Text>
-            <Text style={{ fontSize: 5, color: stampBlue, marginTop: 2 }}>● ● ● ● ●</Text>
+            <Text style={{ fontSize: 5, color: '#1a5276', marginTop: 2 }}>● ● ● ● ●</Text>
           </View>
         </View>
 
         <Text style={styles.taxInfo}>
           VAT Registration No: 1234567890 | This is a computer-generated document, no signature required.
-          {'\n'}
-          የተ.እ.ታ መለያ ቁጥር፡ 1234567890 | ይህ በኮምፒውተር የተዘጋጀ ሰነድ ነው፣ ፊርማ አያስፈልገውም።
         </Text>
 
-        <Text style={styles.footer}>
-          <Text>Bole Sub-city, Addis Ababa, Ethiopia | +251 11 123 4567 | info@eramed.com</Text>
-          <Text>ቦሌ ክፍለ ከተማ፣ አዲስ አበባ፣ ኢትዮጵያ</Text>
-        </Text>
+        <View style={styles.footer}>
+          <Text style={styles.footerTitle}>ERA MED PHARMACEUTICAL WHOLESALE PLC</Text>
+          <View style={styles.footerRow}>
+            <View style={styles.footerCol}>
+              <Text style={styles.footerLabel}>Contact Information</Text>
+              <Text style={styles.footerText}>Phone: 0911-24-49-01 / 0911-85-34-43</Text>
+              <Text style={styles.footerText}>Email: eramedpharma@gmail.com</Text>
+              <Text style={styles.footerText}>Website: https://www.era-med.org</Text>
+              <Text style={styles.footerText}>P.O. Box: 21259/1000</Text>
+            </View>
+            <View style={styles.footerCol}>
+              <Text style={styles.footerLabel}>Head Office</Text>
+              <Text style={styles.footerText}>Addis Ababa, Ethiopia</Text>
+              <Text style={styles.footerText}>Sub-City: Addis Ketama</Text>
+              <Text style={styles.footerText}>Woreda: 06</Text>
+              <Text style={styles.footerText}>House No: 331/201</Text>
+            </View>
+          </View>
+        </View>
       </Page>
     </Document>
   );
 }
 
 function fmt(amount: number): string {
-  return `${amount.toFixed(2)} ETB`;
+  return `${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ETB`;
 }
 
 export async function generateInvoicePdf(data: InvoiceData): Promise<Blob> {
@@ -452,6 +509,13 @@ export function downloadBlob(blob: Blob, filename: string) {
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  requestAnimationFrame(() => {
+    a.click();
+    requestAnimationFrame(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  });
 }

@@ -25,10 +25,13 @@ export function DashboardPage() {
   const user = useAuthStore((s) => s.user);
   const role = useAuthStore((s) => s.role);
 
-  const { data: products } = useProducts();
+  const { data: productsRes } = useProducts();
+  const products = productsRes?.data ?? [];
   const { data: batches } = useBatches();
-  const { data: orders } = useSalesOrders();
-  const { data: payments } = usePayments();
+  const { data: ordersRes } = useSalesOrders();
+  const orders = ordersRes?.data ?? [];
+  const { data: paymentsRes } = usePayments();
+  const payments = paymentsRes?.data ?? [];
   const { data: deliveries } = useDeliveries();
 
   const now = new Date();

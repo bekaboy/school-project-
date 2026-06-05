@@ -1,16 +1,45 @@
-import { useState } from 'react';
-import { useProducts, useDeleteProduct } from '@/lib/supabase/queries';
+import { useState, useMemo } from 'react';
+import { useProducts, useBatches, useDeleteProduct } from '@/lib/supabase/queries';
 import { ProductTable } from '@/features/products/components/product-table';
 import { ProductForm } from '@/features/products/components/product-form';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { PAGE_SIZE } from '@/lib/utils/constants';
 import type { Tables } from '@pharma-ims/shared';
 
 export function ProductPage() {
-  const { data: products, isLoading } = useProducts();
+  const [page, setPage] = useState(0);
+  const [search, setSearch] = useState('');
+  const { data: result, isLoading } = useProducts(page, PAGE_SIZE, search);
+  const products = result?.data ?? [];
+  const totalCount = result?.count ?? 0;
+  const { data: batches } = useBatches();
   const deleteProduct = useDeleteProduct();
   const [formOpen, setFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Tables<'products'> | null>(null);
+
+  const expiryMap = useMemo(() => {
+    if (!batches) return {} as Record<string, string>;
+    const map: Record<string, string> = {};
+    for (const b of batches) {
+      if (b.batch_status !== 'Active' || b.quantity_remaining <= 0) continue;
+      const current = map[b.product_id as string];
+      if (!current || b.expiry_date < current) {
+        map[b.product_id as string] = b.expiry_date;
+      }
+    }
+    return map;
+  }, [batches]);
+
+  const batchCountMap = useMemo(() => {
+    if (!batches) return {} as Record<string, number>;
+    const map: Record<string, number> = {};
+    for (const b of batches) {
+      if (b.batch_status !== 'Active' || b.quantity_remaining <= 0) continue;
+      map[b.product_id as string] = (map[b.product_id as string] ?? 0) + b.quantity_remaining;
+    }
+    return map;
+  }, [batches]);
 
   function handleEdit(product: Tables<'products'>) {
     setEditingProduct(product);
@@ -46,7 +75,14 @@ export function ProductPage() {
       </div>
 
       <ProductTable
-        products={products ?? []}
+        products={products}
+        totalCount={totalCount}
+        page={page}
+        onPageChange={setPage}
+        search={search}
+        onSearchChange={(s) => { setSearch(s); setPage(0); }}
+        expiryMap={expiryMap}
+        batchStockMap={batchCountMap}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />

@@ -7,6 +7,7 @@ import { Plus, Upload, CheckCircle, XCircle, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth-store';
 import { useToast } from '@/hooks/use-toast';
+import { PAGE_SIZE } from '@/lib/utils/constants';
 import { formatCurrency, formatDate } from '@/lib/utils/formatters';
 import { uploadPaymentProof } from '@/lib/supabase/storage';
 import {
@@ -18,25 +19,32 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
-const statusColor: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  Draft: 'secondary',
-  'Proforma Generated': 'default',
-  'Pending Payment': 'outline',
-  Verified: 'default',
-  'Invoice Generated': 'default',
-  'In Transit': 'default',
-  Delivered: 'default',
-  Cancelled: 'destructive',
-  Failed: 'destructive',
-  Rescheduled: 'outline',
+const statusStyles: Record<string, string> = {
+  Draft: 'bg-slate-100 text-slate-700 border-slate-200',
+  'Proforma Generated': 'bg-blue-100 text-blue-700 border-blue-200',
+  'Pending Payment': 'bg-amber-100 text-amber-700 border-amber-200',
+  Verified: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  'Invoice Generated': 'bg-purple-100 text-purple-700 border-purple-200',
+  'In Transit': 'bg-cyan-100 text-cyan-700 border-cyan-200',
+  Delivered: 'bg-green-100 text-green-700 border-green-200',
+  Cancelled: 'bg-red-100 text-red-700 border-red-200',
+  Failed: 'bg-rose-100 text-rose-700 border-rose-200',
+  Rescheduled: 'bg-orange-100 text-orange-700 border-orange-200',
 };
 
-type ViewOrder = NonNullable<ReturnType<typeof useSalesOrders>['data']>[number];
+type ViewOrder = NonNullable<ReturnType<typeof useSalesOrders>['data']>['data'][number];
 
 export function OrderListPage() {
   const user = useAuthStore((s) => s.user);
   const role = useAuthStore((s) => s.role);
-  const { data: orders, isLoading } = useSalesOrders(role === 'Sales Representative' ? user?.id : undefined);
+  const [page, setPage] = useState(0);
+  const [search, setSearch] = useState('');
+  const { data: result, isLoading } = useSalesOrders(
+    role === 'Sales Representative' ? user?.id : undefined,
+    page, PAGE_SIZE, search
+  );
+  const orders = result?.data ?? [];
+  const totalCount = result?.count ?? 0;
   const updateOrder = useUpdateSalesOrder();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -99,7 +107,16 @@ export function OrderListPage() {
         </Button>
       </div>
 
-      <OrderTable orders={(orders ?? []) as never} onCancel={setCancelTarget} onView={setViewTarget} />
+      <OrderTable
+        orders={orders as never}
+        totalCount={totalCount}
+        page={page}
+        onPageChange={setPage}
+        search={search}
+        onSearchChange={(s) => { setSearch(s); setPage(0); }}
+        onCancel={setCancelTarget}
+        onView={setViewTarget}
+      />
 
       <Dialog open={!!cancelTarget} onOpenChange={(open) => { if (!open) setCancelTarget(null); }}>
         <DialogContent>
@@ -126,7 +143,7 @@ export function OrderListPage() {
           {viewTarget && (
             <div className="space-y-3 text-sm">
               <div className="flex items-center gap-2">
-                <Badge variant={statusColor[viewTarget.status] ?? 'secondary'}>{viewTarget.status}</Badge>
+                <Badge className={statusStyles[viewTarget.status] ?? ''}>{viewTarget.status}</Badge>
               </div>
               <div className="grid grid-cols-2 gap-4 border-t pt-3">
                 <div>
@@ -152,16 +169,22 @@ export function OrderListPage() {
               </div>
               <div className="border-t pt-3">
                 <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Items Ordered</p>
-                {(viewTarget as any).order_items?.length > 0 ? (
-                  <div className="max-h-32 overflow-y-auto space-y-1">
-                    {(viewTarget as any).order_items.map((item: any, i: number) => (
-                      <div key={i} className="flex justify-between text-sm">
-                        <span>{item.products?.generic_name ?? 'Unknown'} {item.products?.strength ? `(${item.products.strength})` : ''}</span>
-                        <span className="font-mono shrink-0 ml-2">x{item.quantity}</span>
+                    {(viewTarget as any).order_items?.length > 0 ? (
+                      <div className="max-h-32 overflow-y-auto space-y-1">
+                        {(viewTarget as any).order_items.map((item: any, i: number) => {
+                          const exp = item.batches?.expiry_date;
+                          return (
+                            <div key={i} className="flex justify-between text-sm">
+                              <span className="truncate mr-2">
+                                {item.products?.generic_name ?? 'Unknown'} {item.products?.strength ? `(${item.products.strength})` : ''}
+                                {exp ? <span className="text-xs text-muted-foreground ml-1">Exp: {formatDate(exp)}</span> : null}
+                              </span>
+                              <span className="font-mono shrink-0">x{item.quantity}</span>
+                            </div>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
-                ) : (
+                    ) : (
                   <p className="text-sm text-muted-foreground">—</p>
                 )}
               </div>
@@ -184,9 +207,25 @@ export function OrderListPage() {
 
                   if (isVerified) {
                     return (
-                      <div className="flex items-center gap-2 text-emerald-600">
-                        <CheckCircle className="h-5 w-5" />
-                        <span className="font-medium">Payment Verified</span>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-emerald-600">
+                          <CheckCircle className="h-5 w-5" />
+                          <span className="font-medium">Payment Verified</span>
+                        </div>
+                        {existingPayment.receipt_number && (
+                          <p className="text-xs text-muted-foreground">Receipt: {existingPayment.receipt_number}</p>
+                        )}
+                        {existingPayment.proof_url && (
+                          <div>
+                            {existingPayment.proof_url.match(/\.(png|jpg|jpeg|gif|webp)/i) ? (
+                              <img src={existingPayment.proof_url} alt="Payment proof" className="rounded-md border max-h-48 w-full object-contain bg-muted" />
+                            ) : (
+                              <a href={existingPayment.proof_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary underline underline-offset-2 text-sm">
+                                <ExternalLink className="h-3 w-3" /> View proof
+                              </a>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   }

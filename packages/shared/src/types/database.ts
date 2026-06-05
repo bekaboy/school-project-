@@ -70,15 +70,7 @@ export type Database = {
           ip_address?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "audit_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       batches: {
         Row: {
@@ -144,6 +136,7 @@ export type Database = {
           id: string
           license_number: string | null
           name: string
+          organization_type: string | null
           payment_terms: string | null
           phone: string
           tax_id: string | null
@@ -159,6 +152,7 @@ export type Database = {
           id?: string
           license_number?: string | null
           name: string
+          organization_type?: string | null
           payment_terms?: string | null
           phone: string
           tax_id?: string | null
@@ -174,6 +168,7 @@ export type Database = {
           id?: string
           license_number?: string | null
           name?: string
+          organization_type?: string | null
           payment_terms?: string | null
           phone?: string
           tax_id?: string | null
@@ -187,6 +182,7 @@ export type Database = {
           created_at: string | null
           delivered_at: string | null
           delivery_instructions: string | null
+          delivery_notes: string | null
           driver_id: string | null
           failure_reason: string | null
           id: string
@@ -200,6 +196,7 @@ export type Database = {
           created_at?: string | null
           delivered_at?: string | null
           delivery_instructions?: string | null
+          delivery_notes?: string | null
           driver_id?: string | null
           failure_reason?: string | null
           id?: string
@@ -213,6 +210,7 @@ export type Database = {
           created_at?: string | null
           delivered_at?: string | null
           delivery_instructions?: string | null
+          delivery_notes?: string | null
           driver_id?: string | null
           failure_reason?: string | null
           id?: string
@@ -275,7 +273,7 @@ export type Database = {
       }
       order_items: {
         Row: {
-          batch_id: string
+          batch_id: string | null
           created_at: string | null
           id: string
           order_id: string
@@ -285,7 +283,7 @@ export type Database = {
           unit_price: number
         }
         Insert: {
-          batch_id: string
+          batch_id?: string | null
           created_at?: string | null
           id?: string
           order_id: string
@@ -295,7 +293,7 @@ export type Database = {
           unit_price: number
         }
         Update: {
-          batch_id?: string
+          batch_id?: string | null
           created_at?: string | null
           id?: string
           order_id?: string

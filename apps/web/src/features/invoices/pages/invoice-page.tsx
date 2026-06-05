@@ -3,10 +3,15 @@ import { useInvoices } from '@/lib/supabase/queries';
 import { InvoiceTable } from '@/features/invoices/components/invoice-table';
 import { regenerateInvoicePdf } from '@/lib/utils/invoice-generator';
 import { Button } from '@/components/ui/button';
+import { PAGE_SIZE } from '@/lib/utils/constants';
 import { FileText, RefreshCw } from 'lucide-react';
 
 export function InvoicePage() {
-  const { data: rawInvoices, isLoading, refetch } = useInvoices();
+  const [page, setPage] = useState(0);
+  const [search, setSearch] = useState('');
+  const { data: result, isLoading, refetch } = useInvoices(page, PAGE_SIZE, search);
+  const rawInvoices = result?.data ?? [];
+  const totalCount = result?.count ?? 0;
   const [generating, setGenerating] = useState(false);
 
   const invoices = ((rawInvoices ?? []) as any[]).map((inv: any) => ({
@@ -64,6 +69,11 @@ export function InvoicePage() {
 
       <InvoiceTable
         invoices={invoices}
+        totalCount={totalCount}
+        page={page}
+        onPageChange={setPage}
+        search={search}
+        onSearchChange={(s) => { setSearch(s); setPage(0); }}
         onGenerate={handleGenerate}
         generating={generating}
       />

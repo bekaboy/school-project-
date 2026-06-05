@@ -5,6 +5,8 @@ import { ProtectedRoute } from '@/components/layout/protected-route';
 import { RequirePermission } from '@/components/layout/require-permission';
 import { LoginPage } from '@/features/auth/pages/login-page';
 import { ResetPasswordPage } from '@/features/auth/pages/reset-password-page';
+import { useAuthStore } from '@/stores/auth-store';
+import { getLandingRoute } from '@/lib/utils';
 
 function PR({ permission, children }: { permission: string; children: React.ReactNode }) {
   return <RequirePermission permission={permission}>{children}</RequirePermission>;
@@ -54,6 +56,11 @@ const AuditLogPage = lazy(() =>
   import('@/features/audit/pages/audit-log-page').then((m) => ({ default: m.AuditLogPage })),
 );
 
+function RoleRedirect() {
+  const role = useAuthStore((s) => s.role);
+  return <Navigate to={getLandingRoute(role)} replace />;
+}
+
 function PageFallback() {
   return (
     <div className="flex items-center justify-center h-64 text-muted-foreground">
@@ -75,13 +82,13 @@ export function AppRouter() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route index element={<RoleRedirect />} />
         <Route path="dashboard" element={<Suspense fallback={<PageFallback />}><DashboardPage /></Suspense>} />
         <Route path="products" element={<Suspense fallback={<PageFallback />}><PR permission="product:view"><ProductPage /></PR></Suspense>} />
         <Route path="batches" element={<Suspense fallback={<PageFallback />}><PR permission="batch:manage"><BatchPage /></PR></Suspense>} />
         <Route path="inventory" element={<Suspense fallback={<PageFallback />}><PR permission="inventory:view"><InventoryPage /></PR></Suspense>} />
         <Route path="customers" element={<Suspense fallback={<PageFallback />}><PR permission="customer:view"><CustomerPage /></PR></Suspense>} />
-        <Route path="sales" element={<Suspense fallback={<PageFallback />}><PR permission="order:view-own"><OrderListPage /></PR></Suspense>} />
+        <Route path="sales" element={<Suspense fallback={<PageFallback />}><PR permission="order:create"><OrderListPage /></PR></Suspense>} />
         <Route path="sales/create" element={<Suspense fallback={<PageFallback />}><PR permission="order:create"><CreateOrderPage /></PR></Suspense>} />
         <Route path="payments" element={<Suspense fallback={<PageFallback />}><PR permission="payment:view"><PaymentPage /></PR></Suspense>} />
         <Route path="invoices" element={<Suspense fallback={<PageFallback />}><PR permission="invoice:view"><InvoicePage /></PR></Suspense>} />

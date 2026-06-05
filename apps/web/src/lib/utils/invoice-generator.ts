@@ -23,7 +23,7 @@ interface DeductionPlan {
 export async function generateInvoiceForOrder(salesOrderId: string) {
   const { data: order, error: orderError } = await supabase
     .from('sales_orders')
-    .select('*, order_items(*, products(*)), customers(*), invoices(*)')
+    .select('*, order_items(*, products(*), batches(*)), customers(*), invoices(*)')
     .eq('id', salesOrderId)
     .single();
 
@@ -110,6 +110,14 @@ export async function generateInvoiceForOrder(salesOrderId: string) {
     }
   }
 
+  const { data: refreshedItems } = await supabase
+    .from('order_items')
+    .select('*, products(*), batches(*)')
+    .eq('order_id', salesOrderId);
+  if (refreshedItems) {
+    order.order_items = refreshedItems;
+  }
+
   const now = new Date();
   const y = now.getFullYear();
   const m = String(now.getMonth() + 1).padStart(2, '0');
@@ -133,6 +141,12 @@ export async function generateInvoiceForOrder(salesOrderId: string) {
     .update({ status: 'Invoice Generated' })
     .eq('id', salesOrderId);
 
+  function getExpiryDate(item: any): string | undefined {
+    const batch = item.batches;
+    if (batch?.expiry_date) return batch.expiry_date;
+    return undefined;
+  }
+
   const pdfData = {
     invoiceNumber: invNumber,
     orderId: order.order_id,
@@ -146,6 +160,7 @@ export async function generateInvoiceForOrder(salesOrderId: string) {
       quantity: item.quantity,
       unitPrice: item.unit_price,
       total: item.total_price,
+      expiryDate: getExpiryDate(item),
     })),
     subtotal: order.subtotal,
     tax: order.tax,
@@ -168,18 +183,27 @@ export async function generateInvoiceForOrder(salesOrderId: string) {
 export async function regenerateInvoicePdf(invoiceId: string) {
   const { data: invoice, error: invError } = await supabase
     .from('invoices')
-    .select('*, sales_orders(*, order_items(*, products(*)), customers(*))')
+    .select('*, sales_orders(*, order_items(*, products(*), batches(*)), customers(*))')
     .eq('id', invoiceId)
     .single();
 
   if (invError) throw invError;
 
   const order = invoice.sales_orders as any;
-  const { data: allBatches } = await supabase
-    .from('batches')
-    .select('*')
-    .eq('batch_status', 'Active')
-    .order('manufacturing_date');
+
+  const { data: refreshedItems } = await supabase
+    .from('order_items')
+    .select('*, products(*), batches(*)')
+    .eq('order_id', order.id);
+  if (refreshedItems) {
+    order.order_items = refreshedItems;
+  }
+
+  function getExpiryDate(item: any): string | undefined {
+    const batch = item.batches;
+    if (batch?.expiry_date) return batch.expiry_date;
+    return undefined;
+  }
 
   const pdfData = {
     invoiceNumber: invoice.invoice_number,
@@ -194,6 +218,7 @@ export async function regenerateInvoicePdf(invoiceId: string) {
       quantity: item.quantity,
       unitPrice: item.unit_price,
       total: item.total_price,
+      expiryDate: getExpiryDate(item),
     })),
     subtotal: order.subtotal,
     tax: order.tax,

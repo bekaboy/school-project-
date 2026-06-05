@@ -15,7 +15,8 @@ import {
 import { Download, Search } from 'lucide-react';
 
 export function InventoryReport() {
-  const { data: products, isLoading: pLoading } = useProducts();
+  const { data: productsRes, isLoading: pLoading } = useProducts();
+  const products = productsRes?.data ?? [];
   const { data: batches, isLoading: bLoading } = useBatches();
   const [search, setSearch] = useState('');
 

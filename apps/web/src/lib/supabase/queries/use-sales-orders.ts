@@ -4,22 +4,31 @@ import type { Tables, TablesInsert, TablesUpdate } from '@pharma-ims/shared';
 
 const queryKey = ['sales_orders'] as const;
 
-export function useSalesOrders(salesRepId?: string) {
-  const queryKeyWithFilter = salesRepId ? [...queryKey, 'my', salesRepId] : queryKey;
+export function useSalesOrders(salesRepId?: string, page?: number, pageSize?: number, search?: string) {
+  const baseKey = salesRepId ? [...queryKey, 'my', salesRepId] : queryKey;
   return useQuery({
-    queryKey: queryKeyWithFilter,
+    queryKey: [...baseKey, { page, pageSize, search }],
     queryFn: async () => {
       let query = supabase
         .from('sales_orders')
-        .select('*, customers(*), users!sales_orders_sales_rep_id_fkey(*), order_items(*, products(*))')
+        .select('*, customers(*), users!sales_orders_sales_rep_id_fkey(*), order_items(*, products(*), batches(*))', { count: 'exact' })
         .order('created_at', { ascending: false });
       if (salesRepId) {
         query = query.eq('sales_rep_id', salesRepId);
       }
-      const { data, error } = await query;
+      if (search) {
+        const q = search.toLowerCase();
+        query = query.or(`order_id.ilike.%${q}%,status.ilike.%${q}%`);
+      }
+      if (page != null && pageSize) {
+        const from = page * pageSize;
+        query = query.range(from, from + pageSize - 1);
+      }
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data;
+      return { data: data ?? [], count: count ?? 0 };
     },
+    placeholderData: (prev) => prev,
   });
 }
 
@@ -61,7 +70,7 @@ export function useOrdersByStatus(status: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('sales_orders')
-        .select('*, customers(*), users!sales_orders_sales_rep_id_fkey(*), order_items(*, products(*))')
+        .select('*, customers(*), users!sales_orders_sales_rep_id_fkey(*), order_items(*, products(*), batches(*))')
         .eq('status', status)
         .order('created_at', { ascending: false });
       if (error) throw error;

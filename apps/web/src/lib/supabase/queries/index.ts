@@ -8,3 +8,4 @@ export * from './use-invoices';
 export * from './use-deliveries';
 export * from './use-users';
 export * from './use-audit-logs';
+export * from './use-settings';

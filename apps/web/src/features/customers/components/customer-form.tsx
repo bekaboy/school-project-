@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { mapToDb } from '@/lib/utils/mapping';
 import { useCreateCustomer, useUpdateCustomer } from '@/lib/supabase/queries';
+import { useToast } from '@/hooks/use-toast';
 import type { Tables } from '@pharma-ims/shared';
 
 interface CustomerFormProps {
@@ -56,6 +57,7 @@ function customerToForm(c: Tables<'customers'>): FormState {
 export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps) {
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
+  const { toast } = useToast();
   const isEditing = !!customer;
   const [form, setForm] = useState<FormState>(initialForm);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
@@ -95,13 +97,23 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
 
     const dbData = mapToDb(values);
 
-    if (isEditing && customer) {
-      await updateCustomer.mutateAsync({ id: customer.id, ...dbData });
-    } else {
-      await createCustomer.mutateAsync(dbData as never);
+    try {
+      if (isEditing && customer) {
+        await updateCustomer.mutateAsync({ id: customer.id, ...dbData });
+        toast({ title: 'Customer updated', description: 'Customer information saved successfully.' });
+      } else {
+        await createCustomer.mutateAsync(dbData as never);
+        toast({ title: 'Customer added', description: 'New customer has been created.' });
+      }
+      onOpenChange(false);
+    } catch (err) {
+      console.error('Failed to save customer:', err);
+      toast({
+        title: 'Error',
+        description: err instanceof Error ? err.message : 'Failed to save customer.',
+        variant: 'destructive',
+      });
     }
-
-    onOpenChange(false);
   }
 
   const pending = createCustomer.isPending || updateCustomer.isPending;

@@ -4,6 +4,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Building2, Settings2, Save } from 'lucide-react';
+import { useSettings, useUpsertSettings } from '@/lib/supabase';
+import { useAuthStore } from '@/stores';
 
 const STORAGE_KEY = 'era-med-settings';
 
@@ -35,17 +37,63 @@ const defaults: CompanySettings = {
   expiryWarningPeriod: '90',
 };
 
-function loadSettings(): CompanySettings {
+function loadLocal(): CompanySettings | null {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) return { ...defaults, ...JSON.parse(stored) };
+    if (stored) return JSON.parse(stored);
   } catch {}
-  return defaults;
+  return null;
+}
+
+function toApi(s: CompanySettings, userId: string) {
+  return {
+    user_id: userId,
+    company_name: s.companyName,
+    amharic_name: s.amharicName,
+    tax_id: s.taxId,
+    vat_registration: s.vatRegistration,
+    phone: s.phone,
+    email: s.email,
+    address: s.address,
+    currency: s.currency,
+    default_tax_rate: s.defaultTaxRate,
+    low_stock_threshold: s.lowStockThreshold,
+    expiry_warning_period: s.expiryWarningPeriod,
+  };
+}
+
+function toForm(s: Record<string, string>): CompanySettings {
+  return {
+    companyName: s.company_name ?? defaults.companyName,
+    amharicName: s.amharic_name ?? defaults.amharicName,
+    taxId: s.tax_id ?? defaults.taxId,
+    vatRegistration: s.vat_registration ?? defaults.vatRegistration,
+    phone: s.phone ?? defaults.phone,
+    email: s.email ?? defaults.email,
+    address: s.address ?? defaults.address,
+    currency: s.currency ?? defaults.currency,
+    defaultTaxRate: s.default_tax_rate ?? defaults.defaultTaxRate,
+    lowStockThreshold: s.low_stock_threshold ?? defaults.lowStockThreshold,
+    expiryWarningPeriod: s.expiry_warning_period ?? defaults.expiryWarningPeriod,
+  };
 }
 
 export function SettingsPage() {
-  const [settings, setSettings] = useState<CompanySettings>(loadSettings);
+  const user = useAuthStore((s) => s.user);
+  const userId = user?.id;
+  const { data: dbSettings, isLoading } = useSettings(userId);
+  const upsert = useUpsertSettings();
+
+  const [settings, setSettings] = useState<CompanySettings>(() => {
+    return loadLocal() ?? defaults;
+  });
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (dbSettings) {
+      setSettings(toForm(dbSettings as unknown as Record<string, string>));
+    }
+  }, [dbSettings]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
@@ -56,8 +104,11 @@ export function SettingsPage() {
     setSaved(false);
   }
 
-  function handleSave() {
+  async function handleSave() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    if (userId) {
+      await upsert.mutateAsync(toApi(settings, userId));
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }

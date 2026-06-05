@@ -12,7 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CustomerCombobox } from '@/features/customers/components/customer-combobox';
+import { CustomerCombobox } from './customer-combobox';
+
 import {
   Table,
   TableBody,
@@ -42,13 +43,16 @@ interface FormData {
   customerId: string;
   deliveryAddress: string;
   specialInstructions: string;
+  validDays: number;
   items: LineItem[];
 }
 
 export function CreateOrderForm() {
   const navigate = useNavigate();
-  const { data: customers } = useCustomers();
-  const { data: products } = useProducts();
+  const { data: customersRes } = useCustomers();
+  const customers = customersRes?.data ?? [];
+  const { data: productsRes } = useProducts();
+  const products = productsRes?.data ?? [];
   const { data: batches } = useBatches();
   const createOrder = useCreateSalesOrder();
   const createItems = useCreateOrderItems();
@@ -71,6 +75,7 @@ const [state, send] = useMachine(salesOrderMachine);
     customerId: '',
     deliveryAddress: '',
     specialInstructions: '',
+    validDays: 15,
     items: [],
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -228,20 +233,29 @@ const [state, send] = useMachine(salesOrderMachine);
         return;
       }
 
+      const itemBatches = form.items.map((item) => {
+        const activeBatch = batches?.find(
+          (b) => b.product_id === item.productId && b.batch_status === 'Active' && b.quantity_remaining > 0
+        );
+        return {
+          productId: item.productId,
+          batchId: activeBatch?.id ?? null,
+          expiryDate: activeBatch?.expiry_date ?? null,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          totalPrice: item.unitPrice * item.quantity,
+        };
+      });
+
       try {
-        const items = form.items.map((item) => {
-          const activeBatch = batches?.find(
-            (b) => b.product_id === item.productId && b.batch_status === 'Active' && b.quantity_remaining > 0
-          );
-          return {
-            order_id: newOrder.id,
-            product_id: item.productId,
-            batch_id: activeBatch?.id ?? null,
-            quantity: item.quantity,
-            unit_price: item.unitPrice,
-            total_price: item.unitPrice * item.quantity,
-          };
-        });
+        const items = itemBatches.map((ib) => ({
+          order_id: newOrder.id,
+          product_id: ib.productId,
+          batch_id: ib.batchId,
+          quantity: ib.quantity,
+          unit_price: ib.unitPrice,
+          total_price: ib.totalPrice,
+        }));
         await createItems.mutateAsync(items as never);
       } catch (err) {
         toast({ title: 'Items error', description: err instanceof Error ? err.message : 'Failed to save order items', variant: 'destructive' });
@@ -254,18 +268,26 @@ const [state, send] = useMachine(salesOrderMachine);
 
       toast({ title: 'Order created', description: 'Generating proforma PDF...' });
 
+      const validUntil = new Date(Date.now() + form.validDays * 24 * 60 * 60 * 1000)
+        .toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
       const pdfData = {
         orderId: newOrder.order_id,
         date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+        validUntil,
         customerName: selectedCustomer?.name ?? '',
         customerAddress: form.deliveryAddress || selectedCustomer?.address || '',
         customerPhone: selectedCustomer?.phone ?? '',
+        customerTaxId: selectedCustomer?.tax_id ?? '',
         salesRep: user.email ?? '',
-        items: form.items.map((i) => ({
+        items: form.items.map((i, idx) => ({
           description: i.productName,
           quantity: i.quantity,
           unitPrice: i.unitPrice,
           total: i.unitPrice * i.quantity,
+          expiryDate: itemBatches[idx]?.expiryDate
+            ? new Date(itemBatches[idx].expiryDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+            : undefined,
         })),
         subtotal,
         tax: taxTotal,
@@ -329,8 +351,7 @@ const [state, send] = useMachine(salesOrderMachine);
             <CustomerCombobox
               customers={customers}
               value={form.customerId}
-              onValueChange={updateCustomer}
-              placeholder="Search customer by name, phone, or email..."
+              onSelect={updateCustomer}
             />
           </Field>
 
@@ -466,6 +487,16 @@ const [state, send] = useMachine(salesOrderMachine);
               <p><span className="font-medium">Instructions:</span> {form.specialInstructions}</p>
             )}
           </div>
+
+          <Field label="Proforma Valid Days">
+            <Input
+              type="number"
+              min={1}
+              max={90}
+              value={form.validDays}
+              onChange={(e) => setForm((p) => ({ ...p, validDays: parseInt(e.target.value) || 15 }))}
+            />
+          </Field>
 
           <div className="rounded-md border">
             <Table>

@@ -3,6 +3,7 @@ import { usePayments, useUpdatePayment, useUpdateSalesOrder } from '@/lib/supaba
 import { PaymentTable } from '@/features/payments/components/payment-table';
 import { PaymentVerifyDialog } from '@/features/payments/components/payment-verify-dialog';
 import { generateInvoiceForOrder } from '@/lib/utils/invoice-generator';
+import { PAGE_SIZE } from '@/lib/utils/constants';
 import type { Tables } from '@pharma-ims/shared';
 import { useAuthStore } from '@/stores/auth-store';
 
@@ -10,14 +11,21 @@ type PaymentWithOrder = Tables<'payments'> & {
   sales_orders: Tables<'sales_orders'> & {
     customers: Pick<Tables<'customers'>, 'name'> | null;
     order_items: Array<{
-      products: Pick<Tables<'products'>, 'generic_name' | 'strength'> | null;
+      products: Pick<Tables<'products'>, 'generic_name' | 'brand_name' | 'strength'> | null;
       quantity: number;
+      unit_price: number;
+      total_price: number;
     }> | null;
   };
 };
 
 export function PaymentPage() {
-  const { data: payments, isLoading } = usePayments();
+  const [page, setPage] = useState(0);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const { data: result, isLoading } = usePayments(page, PAGE_SIZE, search, statusFilter || undefined);
+  const payments = result?.data ?? [];
+  const totalCount = result?.count ?? 0;
   const user = useAuthStore((s) => s.user);
   const updatePayment = useUpdatePayment();
   const updateOrder = useUpdateSalesOrder();
@@ -42,6 +50,14 @@ export function PaymentPage() {
       const seq = String(Math.floor(Math.random() * 90000) + 10000);
       const receiptNumber = `RCPT-${year}-${seq}`;
 
+      try {
+        await generateInvoiceForOrder(selectedPayment.order_id);
+      } catch {
+        setDialogOpen(false);
+        setSelectedPayment(null);
+        return;
+      }
+
       await updatePayment.mutateAsync({
         id: selectedPayment.id,
         status: 'Verified',
@@ -49,13 +65,6 @@ export function PaymentPage() {
         verified_by: user.id,
         receipt_number: receiptNumber,
       });
-
-      await updateOrder.mutateAsync({
-        id: selectedPayment.order_id,
-        status: 'Verified',
-      });
-
-      await generateInvoiceForOrder(selectedPayment.order_id);
     } else {
       await updatePayment.mutateAsync({
         id: selectedPayment.id,
@@ -88,7 +97,14 @@ export function PaymentPage() {
       </div>
 
       <PaymentTable
-        payments={(payments ?? []) as PaymentWithOrder[]}
+        payments={payments as PaymentWithOrder[]}
+        totalCount={totalCount}
+        page={page}
+        onPageChange={setPage}
+        search={search}
+        onSearchChange={(s) => { setSearch(s); setPage(0); }}
+        statusFilter={statusFilter}
+        onStatusFilterChange={(s) => { setStatusFilter(s); setPage(0); }}
         onVerify={handleVerify}
         onReject={handleReject}
       />

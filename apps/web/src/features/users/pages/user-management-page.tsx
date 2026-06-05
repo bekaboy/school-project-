@@ -49,7 +49,7 @@ export function UserManagementPage() {
       ip_address: '',
     } as never);
 
-    deleteUser.mutate(id);
+    deleteUser.mutate({ id, email: target?.email ?? '' });
   }
 
   if (isLoading) {

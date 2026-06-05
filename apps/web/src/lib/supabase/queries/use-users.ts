@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../client';
-import { adminCreateUser } from '../auth';
+import { adminCreateUser, adminDeleteUser } from '../auth';
 import type { Tables, TablesInsert, TablesUpdate } from '@pharma-ims/shared';
 
 const queryKey = ['users'] as const;
@@ -51,26 +51,15 @@ export function useCreateUserWithAuth() {
       role: string;
       isActive: boolean;
     }) => {
-      const { email, password, fullName, phone, role, isActive } = params;
-
-      const { user } = await adminCreateUser(email, password, role, fullName);
-      const authId = (user as unknown as { id: string }).id;
-      if (!authId) throw new Error('Auth user creation returned no user ID');
-
-      const { data, error } = await supabase
-        .from('users')
-        .insert({
-          id: authId,
-          email,
-          full_name: fullName,
-          phone,
-          role,
-          is_active: isActive,
-        })
-        .select()
-        .single();
-      if (error) throw error;
-      return data as Tables<'users'>;
+      const result = await adminCreateUser({
+        email: params.email,
+        password: params.password,
+        role: params.role,
+        fullName: params.fullName,
+        phone: params.phone,
+        isActive: params.isActive,
+      });
+      return result as Tables<'users'>;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey }),
   });
@@ -91,9 +80,10 @@ export function useUpdateUser() {
 export function useDeleteUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('users').delete().eq('id', id);
+    mutationFn: async ({ id, email }: { id: string; email: string }) => {
+      const { error } = await supabase.from('users').update({ is_active: false }).eq('id', id);
       if (error) throw error;
+      await adminDeleteUser(email).catch(() => {});
     },
     onSuccess: () => qc.invalidateQueries({ queryKey }),
   });

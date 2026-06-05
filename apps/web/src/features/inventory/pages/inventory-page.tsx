@@ -16,6 +16,7 @@ import { Search, Package, AlertTriangle, Clock, TrendingDown, Settings2, History
 import { StockAdjustDialog } from '@/features/inventory/components/stock-adjust-dialog';
 import { StockMovementDialog } from '@/features/inventory/components/stock-movement-dialog';
 import { Button } from '@/components/ui/button';
+import { StatusLegend } from '@/components/status-legend';
 import type { Tables } from '@pharma-ims/shared';
 
 type BatchWithProduct = Tables<'batches'> & {
@@ -25,6 +26,7 @@ type BatchWithProduct = Tables<'batches'> & {
 interface ProductStock {
   product: Tables<'products'>;
   totalStock: number;
+  totalReceived: number;
   batchCount: number;
   lowStock: boolean;
   expiringBatches: BatchWithProduct[];
@@ -32,7 +34,8 @@ interface ProductStock {
 }
 
 export function InventoryPage() {
-  const { data: products, isLoading: productsLoading } = useProducts();
+  const { data: productsRes, isLoading: productsLoading } = useProducts();
+  const products = productsRes?.data ?? [];
   const { data: batches, isLoading: batchesLoading } = useBatches();
   const [search, setSearch] = useState('');
   const [adjustOpen, setAdjustOpen] = useState(false);
@@ -55,9 +58,12 @@ export function InventoryPage() {
         const activeBatches = productBatches.filter((b) => b.batch_status === 'Active');
         const totalStock = activeBatches.reduce((sum, b) => sum + b.quantity_remaining, 0);
 
+        const totalReceived = productBatches.reduce((sum, b) => sum + (b.quantity_received ?? b.quantity_remaining), 0);
+
         return {
           product,
           totalStock,
+          totalReceived,
           batchCount: productBatches.length,
           lowStock: totalStock < (product.reorder_quantity ?? 10),
           expiringBatches: productBatches.filter((b) => {
@@ -153,6 +159,8 @@ export function InventoryPage() {
         />
       </div>
 
+      <StatusLegend />
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -160,7 +168,9 @@ export function InventoryPage() {
               <TableHead>Product</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Stock</TableHead>
+              <TableHead>Availability</TableHead>
               <TableHead>Batches</TableHead>
+              <TableHead>Expiry</TableHead>
               <TableHead>Selling Price</TableHead>
               <TableHead>Stock Value</TableHead>
               <TableHead>Status</TableHead>
@@ -170,7 +180,7 @@ export function InventoryPage() {
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
                   No inventory data found.
                 </TableCell>
               </TableRow>
@@ -183,22 +193,68 @@ export function InventoryPage() {
                   </TableCell>
                   <TableCell>{s.product.category}</TableCell>
                   <TableCell className="font-mono text-sm">
-                    <span
-                      className={
-                        s.totalStock === 0
-                          ? 'text-destructive font-medium'
-                          : s.lowStock
-                            ? 'text-amber-600 font-medium'
-                            : ''
-                      }
-                    >
-                      {s.totalStock}
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className={`inline-block h-2 w-2 rounded-full ${
+                        s.totalStock === 0 ? 'bg-destructive' :
+                        s.lowStock ? 'bg-amber-500' : 'bg-green-500'
+                      }`} />
+                      <span
+                        className={
+                          s.totalStock === 0
+                            ? 'text-destructive font-medium'
+                            : s.lowStock
+                              ? 'text-amber-600 font-medium'
+                              : ''
+                        }
+                      >
+                        {s.totalStock}
+                      </span>
                     </span>
                     <span className="text-xs text-muted-foreground ml-1">
                       / {s.product.reorder_quantity} min
                     </span>
                   </TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {s.totalReceived > 0 ? (
+                      <span className="inline-flex items-center gap-2">
+                        <div className="h-2 w-16 overflow-hidden rounded-full bg-muted">
+                          <div
+                            className={`h-full rounded-full transition-all ${
+                              (s.totalStock / s.totalReceived) < 0.2 ? 'bg-destructive' :
+                              (s.totalStock / s.totalReceived) < 0.5 ? 'bg-amber-500' :
+                              'bg-green-500'
+                            }`}
+                            style={{ width: `${Math.min(100, Math.round((s.totalStock / s.totalReceived) * 100))}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {s.totalStock}/{s.totalReceived}
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
                   <TableCell className="font-mono text-sm">{s.batchCount}</TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {(() => {
+                      const active = (batches as BatchWithProduct[]).filter((b) => b.product_id === s.product.id && b.batch_status === 'Active' && b.quantity_remaining > 0);
+                      if (active.length === 0) return <span className="text-muted-foreground">—</span>;
+                      const nearest = active.reduce((a, b) => a.expiry_date < b.expiry_date ? a : b);
+                      const expiry = new Date(nearest.expiry_date);
+                      const isExpiring = expiry > new Date() && expiry <= new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+                      const isExpired = expiry < new Date();
+                      const dotColor = isExpired ? 'bg-destructive' : isExpiring ? 'bg-orange-500' : 'bg-green-500';
+                      return (
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className={`inline-block h-2 w-2 rounded-full ${dotColor}`} />
+                          <span className={isExpired ? 'text-destructive font-medium' : isExpiring ? 'text-orange-600 font-medium' : ''}>
+                            {formatDate(nearest.expiry_date)}
+                          </span>
+                        </span>
+                      );
+                    })()}
+                  </TableCell>
                   <TableCell className="font-mono text-sm">
                     {formatCurrency(s.product.selling_price)}
                   </TableCell>

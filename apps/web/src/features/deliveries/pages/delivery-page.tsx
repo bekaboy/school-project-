@@ -41,7 +41,8 @@ export function DeliveryPage() {
   const { data: allDeliveries, isLoading: allLoading } = useDeliveries();
   const { data: driverDeliveries, isLoading: driverLoading } = useDeliveriesByDriver(user?.id ?? '');
   const { data: users } = useUsers();
-  const { data: orders } = useSalesOrders();
+  const { data: ordersRes } = useSalesOrders();
+  const orders = ordersRes?.data ?? [];
 
   const createDelivery = useCreateDelivery();
   const updateDelivery = useUpdateDelivery();

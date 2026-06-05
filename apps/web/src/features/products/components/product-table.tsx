@@ -10,12 +10,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { formatCurrency } from '@/lib/utils/formatters';
+import { formatCurrency, formatDate } from '@/lib/utils/formatters';
 import { useSort } from '@/lib/utils/use-sort';
-import { Pencil, Trash2, Search, ChevronLeft, ChevronRight, X, ImageIcon } from 'lucide-react';
-import { useState, useMemo } from 'react';
-
-const PAGE_SIZE = 25;
+import { PaginationControls } from '@/components/ui/pagination-controls';
+import { Pencil, Trash2, Search, X, ImageIcon, Package } from 'lucide-react';
+import { StatusLegend } from '@/components/status-legend';
+import { useState } from 'react';
+import { PAGE_SIZE } from '@/lib/utils/constants';
 
 function SortableHead({ label, sortKey, currentKey, direction, onClick, className }: {
   label: string; sortKey: string; currentKey: string | undefined; direction: 'asc' | 'desc';
@@ -34,31 +35,22 @@ function SortableHead({ label, sortKey, currentKey, direction, onClick, classNam
 
 interface ProductTableProps {
   products: Tables<'products'>[];
+  totalCount: number;
+  page: number;
+  onPageChange: (page: number) => void;
+  search: string;
+  onSearchChange: (search: string) => void;
+  expiryMap?: Record<string, string>;
+  batchStockMap?: Record<string, number>;
   onEdit: (product: Tables<'products'>) => void;
   onDelete: (id: string) => void;
 }
 
-export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) {
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(0);
+export function ProductTable({ products, totalCount, page, onPageChange, search, onSearchChange, expiryMap, batchStockMap, onEdit, onDelete }: ProductTableProps) {
   const [viewImage, setViewImage] = useState<string | null>(null);
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return products;
-    const q = search.toLowerCase();
-    return products.filter(
-      (p) =>
-        p.generic_name.toLowerCase().includes(q) ||
-        p.brand_name.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q) ||
-        p.product_id.toLowerCase().includes(q),
-    );
-  }, [products, search]);
-
-  const { sorted, sortKey, sortDir, getSortProps } = useSort(filtered, 'generic_name' as keyof Tables<'products'>);
-  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages - 1);
-  const pageItems = sorted.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
+  const { sorted, sortKey, sortDir, getSortProps } = useSort(products, 'generic_name' as keyof Tables<'products'>);
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   return (
     <div className="space-y-4">
@@ -67,10 +59,12 @@ export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) 
         <Input
           placeholder="Search products..."
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+          onChange={(e) => onSearchChange(e.target.value)}
           className="pl-9"
         />
       </div>
+
+      <StatusLegend />
 
       <div className="rounded-md border">
         <Table>
@@ -83,20 +77,21 @@ export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) 
               <SortableHead label="Strength" sortKey="strength" currentKey={sortKey} direction={sortDir} onClick={getSortProps('strength' as keyof Tables<'products'>).onClick} />
               <SortableHead label="Category" sortKey="category" currentKey={sortKey} direction={sortDir} onClick={getSortProps('category' as keyof Tables<'products'>).onClick} />
               <TableHead>Stock</TableHead>
+              <TableHead>Expiry</TableHead>
               <SortableHead label="Unit Price" sortKey="selling_price" currentKey={sortKey} direction={sortDir} onClick={getSortProps('selling_price' as keyof Tables<'products'>).onClick} className="text-right" />
               <SortableHead label="Status" sortKey="active_status" currentKey={sortKey} direction={sortDir} onClick={getSortProps('active_status' as keyof Tables<'products'>).onClick} />
               <TableHead className="w-20">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {pageItems.length === 0 ? (
+            {sorted.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="h-32 text-center text-muted-foreground">
+                <TableCell colSpan={11} className="h-32 text-center text-muted-foreground">
                   No products found.
                 </TableCell>
               </TableRow>
             ) : (
-              pageItems.map((product) => (
+              sorted.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell className="font-mono text-xs">{product.product_id}</TableCell>
                   <TableCell>
@@ -118,9 +113,38 @@ export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) 
                   <TableCell>{product.strength}</TableCell>
                   <TableCell>{product.category}</TableCell>
                   <TableCell>
-                    <span className="text-muted-foreground text-xs">
-                      See Inventory
+                    <span className="inline-flex items-center gap-1.5 font-mono text-sm">
+                      {batchStockMap?.[product.id] != null ? (
+                        <>
+                          <span className={`inline-block h-2 w-2 rounded-full ${
+                            (batchStockMap[product.id] ?? 0) === 0 ? 'bg-destructive' :
+                            product.reorder_quantity && (batchStockMap[product.id] ?? 0) < product.reorder_quantity ? 'bg-amber-500' : 'bg-green-500'
+                          }`} />
+                          <Package className="h-3 w-3 text-muted-foreground" />
+                          {batchStockMap[product.id]}
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
                     </span>
+                  </TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {(() => {
+                      const expDate: string | undefined = expiryMap?.[product.id];
+                      if (!expDate) return <span className="text-muted-foreground text-xs">—</span>;
+                      const expiry = new Date(expDate);
+                      const isExpiring = expiry > new Date() && expiry <= new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+                      const isExpired = expiry < new Date();
+                      const dotColor = isExpired ? 'bg-destructive' : isExpiring ? 'bg-orange-500' : 'bg-green-500';
+                      return (
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className={`inline-block h-2 w-2 rounded-full ${dotColor}`} />
+                          <span className={isExpired ? 'text-destructive font-medium' : isExpiring ? 'text-orange-600 font-medium' : ''}>
+                            {formatDate(expDate)}
+                          </span>
+                        </span>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell className="text-right font-mono">
                     {formatCurrency(product.selling_price)}
@@ -147,22 +171,14 @@ export function ProductTable({ products, onEdit, onDelete }: ProductTableProps) 
         </Table>
       </div>
 
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Showing {Math.min(PAGE_SIZE, pageItems.length)} of {sorted.length} products
-        </p>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled={safePage === 0} onClick={() => setPage(safePage - 1)}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            Page {safePage + 1} of {totalPages}
-          </span>
-          <Button variant="outline" size="sm" disabled={safePage >= totalPages - 1} onClick={() => setPage(safePage + 1)}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        itemLabel="products"
+        showing={sorted.length}
+        total={totalCount}
+      />
 
       {viewImage && (
         <div

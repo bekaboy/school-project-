@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -10,7 +10,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { formatDate } from '@/lib/utils/formatters';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 import { Search, Download, FileText } from 'lucide-react';
+import { PAGE_SIZE } from '@/lib/utils/constants';
 
 interface InvoiceRow {
   id: string;
@@ -27,23 +29,17 @@ interface InvoiceRow {
 
 interface InvoiceTableProps {
   invoices: InvoiceRow[];
+  totalCount: number;
+  page: number;
+  onPageChange: (page: number) => void;
+  search: string;
+  onSearchChange: (search: string) => void;
   onGenerate: (invoiceId: string) => void;
   generating: boolean;
 }
 
-export function InvoiceTable({ invoices, onGenerate, generating }: InvoiceTableProps) {
-  const [search, setSearch] = useState('');
-
-  const filtered = useMemo(() => {
-    if (!search.trim()) return invoices;
-    const q = search.toLowerCase();
-    return invoices.filter(
-      (inv) =>
-        inv.invoice_number.toLowerCase().includes(q) ||
-        inv.order.order_id.toLowerCase().includes(q) ||
-        inv.order.customer_name.toLowerCase().includes(q),
-    );
-  }, [invoices, search]);
+export function InvoiceTable({ invoices, totalCount, page, onPageChange, search, onSearchChange, onGenerate, generating }: InvoiceTableProps) {
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   return (
     <div className="space-y-4">
@@ -52,7 +48,7 @@ export function InvoiceTable({ invoices, onGenerate, generating }: InvoiceTableP
         <Input
           placeholder="Search invoices..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => onSearchChange(e.target.value)}
           className="pl-9"
         />
       </div>
@@ -70,14 +66,14 @@ export function InvoiceTable({ invoices, onGenerate, generating }: InvoiceTableP
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.length === 0 ? (
+            {invoices.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
                   No invoices found.
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((inv) => (
+              invoices.map((inv) => (
                 <TableRow key={inv.id}>
                   <TableCell className="font-mono text-xs font-medium">{inv.invoice_number}</TableCell>
                   <TableCell className="font-mono text-xs">{inv.order.order_id}</TableCell>
@@ -127,9 +123,14 @@ export function InvoiceTable({ invoices, onGenerate, generating }: InvoiceTableP
         </Table>
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        Showing {filtered.length} of {invoices.length} invoices
-      </p>
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        itemLabel="invoices"
+        showing={invoices.length}
+        total={totalCount}
+      />
     </div>
   );
 }

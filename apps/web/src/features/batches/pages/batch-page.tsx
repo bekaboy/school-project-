@@ -12,7 +12,8 @@ type BatchWithProduct = Tables<'batches'> & {
 
 export function BatchPage() {
   const { data: batches, isLoading } = useBatches();
-  const { data: products } = useProducts();
+  const { data: productsRes } = useProducts();
+  const products = productsRes?.data ?? [];
   const [formOpen, setFormOpen] = useState(false);
   const [editingBatch, setEditingBatch] = useState<BatchWithProduct | null>(null);
 
