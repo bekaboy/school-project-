@@ -1,6 +1,8 @@
 # PharmaIMS — Pharmaceutical Wholesale Inventory & Sales Management System
 
-A web-based inventory and sales management system for **Era Med Pharmaceutical Wholesale PLC**, built with React, TypeScript, Supabase, and Turborepo.
+A web-based inventory and sales management system for **Era Med Pharmaceutical Wholesale PLC**, built with React, TypeScript, Supabase, and Turborepo.The complete pharmaceutical inventory and sales management platform designed to help pharmacies track stock, manage sales orders, and handle customer relationships in one place. Users can add products with batch tracking (including expiry dates), create sales orders with proforma/invoice generation, manage deliveries and drivers, record payments with receipt uploads, and monitor inventory levels in real time.
+
+The platform enforces different access levels so sales representatives can create orders and customers, while store managers and technical owners handle products, batches, and overall configuration. Built-in reporting gives insight into inventory status, sales performance, and audit logs — all accessible from anywhere through a web browser without installing any software
 
 ## Tech Stack
 
