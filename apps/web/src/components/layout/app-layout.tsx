@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useCallback } from 'react';
+import { useState, Suspense, useEffect, useCallback } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/auth-store';
@@ -14,6 +14,7 @@ export function AppLayout() {
   const updateActivity = useAuthStore((s) => s.updateActivity);
   const user = useAuthStore((s) => s.user);
   const role = useAuthStore((s) => s.role);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const checkSession = useCallback(() => {
     const user = useAuthStore.getState().user;
@@ -42,9 +43,9 @@ export function AppLayout() {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar />
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <Header />
+        <Header onMenuClick={() => setSidebarOpen((prev) => !prev)} />
         <main className="relative flex-1 overflow-y-auto">
           <div className="absolute inset-0 bg-white">
             <div
@@ -56,7 +57,7 @@ export function AppLayout() {
             />
             <div className="pointer-events-none absolute inset-0 bg-white [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
           </div>
-          <div className="relative z-10 p-6">
+          <div className="relative z-10 p-4 md:p-6">
             <Suspense
               fallback={
                 <div className="flex items-center justify-center h-full">

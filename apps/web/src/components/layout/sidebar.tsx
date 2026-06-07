@@ -1,8 +1,11 @@
 import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
+import { X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { UserRole } from '@pharma-ims/shared';
 import { useAuth } from '@/features/auth/hooks/use-auth';
 import { hasPermission } from '@/lib/utils/permissions';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import {
   LayoutDashboard,
   Package,
@@ -43,25 +46,32 @@ const navItems: NavItem[] = [
   { labelKey: 'nav.settings', to: '/settings', icon: Settings, permission: 'settings:manage' },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+export function Sidebar({ open, onClose }: SidebarProps) {
   const { t } = useTranslation();
   const { role } = useAuth();
+  const isMobile = useMediaQuery('(max-width: 767px)');
 
   const visibleItems = navItems.filter(
     (item) => !item.permission || hasPermission(role as UserRole, item.permission),
   );
 
-  return (
-    <aside className="flex w-64 flex-col border-r bg-sidebar">
+  const sidebar = (
+    <aside className="flex h-full w-64 flex-col border-r bg-sidebar">
       <div className="flex h-20 items-center gap-3 border-b border-sidebar-border px-4">
         <img src="/logo.png" alt="Era Med" className="h-14 object-contain" />
         <span className="text-lg font-bold text-sidebar-foreground">Era Med</span>
       </div>
-      <nav className="flex-1 space-y-1 p-4">
+      <nav className="flex-1 space-y-1 overflow-y-auto p-4">
         {visibleItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
+            onClick={() => isMobile && onClose()}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
                 isActive
@@ -70,11 +80,32 @@ export function Sidebar() {
               }`
             }
           >
-            <item.icon className="h-4 w-4" />
-            {t(item.labelKey)}
+            <item.icon className="h-4 w-4 shrink-0" />
+            <span className="truncate">{t(item.labelKey)}</span>
           </NavLink>
         ))}
       </nav>
     </aside>
+  );
+
+  if (!isMobile) return sidebar;
+
+  return (
+    <>
+      {open && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50"
+          onClick={onClose}
+        />
+      )}
+      <div
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 transition-transform duration-300 ease-in-out',
+          open ? 'translate-x-0' : '-translate-x-full',
+        )}
+      >
+        {sidebar}
+      </div>
+    </>
   );
 }

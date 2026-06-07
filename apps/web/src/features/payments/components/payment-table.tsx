@@ -79,7 +79,7 @@ export function PaymentTable({ payments, totalCount, page, onPageChange, search,
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>

@@ -82,7 +82,7 @@ export function OrderTable({ orders, totalCount, page, onPageChange, search, onS
         />
       </div>
 
-      <div className="rounded-md border">
+      <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>

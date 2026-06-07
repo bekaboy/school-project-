@@ -132,7 +132,7 @@ export function LoginPage() {
   }, []);
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#fefaf2] p-6">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#fefaf2] p-4 md:p-6">
       <div
         className={cn(
           'absolute inset-0',
@@ -143,7 +143,7 @@ export function LoginPage() {
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[#fefaf2] [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
 
       <div className="relative z-10 w-full max-w-lg space-y-8">
-        <div className="rounded-2xl bg-white/70 p-10 shadow-xl shadow-black/5 backdrop-blur-xl">
+          <div className="rounded-2xl bg-white/70 p-6 shadow-xl shadow-black/5 backdrop-blur-xl md:p-10">
           <div className="mb-6 flex justify-center">
             <img src="/logo.png" alt="Era Med Pharmaceuticals" className="h-40 object-contain" />
           </div>
