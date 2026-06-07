@@ -1,0 +1,56 @@
+redirectsOrigin = "config"
+plugins = []
+functionsDirectory = "C:\\Users\\kidis\\OneDrive\\Desktop\\fundanmental\\pharma-ims\\netlify\\functions"
+functionsDirectoryOrigin = "config"
+headers = []
+
+[functions]
+
+[functions."*"]
+
+[build]
+publish = "C:\\Users\\kidis\\OneDrive\\Desktop\\fundanmental\\pharma-ims\\apps\\web\\dist"
+publishOrigin = "config"
+commandOrigin = "config"
+command = "pnpm build"
+functions = "C:\\Users\\kidis\\OneDrive\\Desktop\\fundanmental\\pharma-ims\\netlify\\functions"
+
+[build.environment]
+NODE_VERSION = "20"
+NPM_FLAGS = "--no-optional"
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
+
+[[redirects]]
+from = "/"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]

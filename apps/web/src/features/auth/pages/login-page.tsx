@@ -15,6 +15,7 @@ export function LoginPage() {
   const rememberMe = useAuthStore((s) => s.rememberMe);
   const setRememberMe = useAuthStore((s) => s.setRememberMe);
   const auditLog = useCreateAuditLog();
+  const [ready, setReady] = useState(false);
   const [email, setEmail] = useState(localStorage.getItem('era-med-email') ?? '');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -125,7 +126,9 @@ export function LoginPage() {
   }
 
   useEffect(() => {
-    supabase.auth.signOut();
+    const keys = Object.keys(localStorage).filter((k) => k.startsWith('sb-'));
+    keys.forEach((k) => localStorage.removeItem(k));
+    supabase.auth.signOut().finally(() => setReady(true));
   }, []);
 
   return (
@@ -158,15 +161,21 @@ export function LoginPage() {
                 Back to login
               </button>
             </div>
+          ) : !ready ? (
+            <div className="flex justify-center py-12">
+              <span className="text-muted-foreground">Loading...</span>
+            </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
               <div>
                 <label className="block text-sm font-medium mb-1.5">{t('auth.email')}</label>
                 <input
                   type="email"
+                  name="login-email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  autoComplete="off"
                   className="w-full rounded-lg border bg-white/60 px-4 py-3 text-base backdrop-blur-sm"
                   placeholder="email@example.com"
                 />
@@ -175,9 +184,11 @@ export function LoginPage() {
                 <label className="block text-sm font-medium mb-1.5">{t('auth.password')}</label>
                 <input
                   type="password"
+                  name="login-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  autoComplete="new-password"
                   className="w-full rounded-lg border bg-white/60 px-4 py-3 text-base backdrop-blur-sm"
                 />
               </div>
